@@ -89,10 +89,11 @@ with st.sidebar:
 
     go = st.button("Récupérer les données")
     if go:
-        teams = get_teams(id_saison,saison)
-        games = get_games_df(id_saison,saison)
-        standings = get_standings_advanced_df(id_saison,saison)
-        penalties = get_penalties_df(id_saison,saison)
+        with st.spinner("Récupération en cours..."):
+            teams = get_teams(id_saison,saison)
+            games = get_games_df(id_saison,saison)
+            standings = get_standings_advanced_df(id_saison,saison)
+            penalties = get_penalties_df(id_saison,saison)
 
 
 if go:

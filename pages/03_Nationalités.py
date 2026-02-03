@@ -59,12 +59,13 @@ with st.sidebar:
 
     go = st.button("Récupérer les données")
     if go:
-        teams = get_teams(id_saison,saison)
-        skaters = get_skaters_df(id_saison,saison)
-        goalies = get_goalies_df(id_saison,saison)
-        players = pd.concat((skaters.reset_index()[["player_id","player_name","team_id","birthprov","birthcntry"]],goalies.reset_index()[["player_id","player_name","team_id","birthprov","birthcntry"]]))
-        players["Count"] = 1
-        players["%"] = 1/players.shape[0]
+        with st.spinner("Récupération en cours..."):
+            teams = get_teams(id_saison,saison)
+            skaters = get_skaters_df(id_saison,saison)
+            goalies = get_goalies_df(id_saison,saison)
+            players = pd.concat((skaters.reset_index()[["player_id","player_name","team_id","birthprov","birthcntry"]],goalies.reset_index()[["player_id","player_name","team_id","birthprov","birthcntry"]]))
+            players["Count"] = 1
+            players["%"] = 1/players.shape[0]
 
 
 with st.container():
