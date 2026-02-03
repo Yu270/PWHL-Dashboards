@@ -110,13 +110,14 @@ with st.sidebar:
 
     go = st.button("Récupérer les données")
     if go:
-        skaters = get_skaters_df(id_saison,saison)
-        goalies = get_goalies_df(id_saison,saison)
-        penalties = get_penalties_df(id_saison,saison)
-        if equipe!="Toutes":
-            skaters = skaters[skaters.team_id==id_equipe].copy()
-            goalies = goalies[goalies.team_id==id_equipe].copy()
-            penalties = penalties[penalties.team_id==id_equipe].copy()
+        with st.spinner("Récupération en cours..."):
+            skaters = get_skaters_df(id_saison,saison)
+            goalies = get_goalies_df(id_saison,saison)
+            penalties = get_penalties_df(id_saison,saison)
+            if equipe!="Toutes":
+                skaters = skaters[skaters.team_id==id_equipe].copy()
+                goalies = goalies[goalies.team_id==id_equipe].copy()
+                penalties = penalties[penalties.team_id==id_equipe].copy()
 
 
 with st.container(border=True):
