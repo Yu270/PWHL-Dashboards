@@ -14,35 +14,45 @@ plt.style.use('dark_background')
 
 def show_visuals(base_df: pd.DataFrame, column: str, name: str, ascending: bool, rounding: int, title: str = None, percent: bool = False):
     """
+    Fonction qui affiche le classement des équipes selon une variable. 
+    
+    Entrées
+        base_df: données à utiliser
+        column: variable à utiliser
+        name: nom de la variable à afficher
+        ascending: si on classe en ordre croissant
+        rounding: arrondissement des données
+        title: titre du classement
+        percent: si on affiche le symbole de %
     """
     new_df = base_df[["team_id",column]].reset_index(drop=True)
-    new_df["Team"] = ""
+    new_df["Équipe"] = ""
     for i in new_df.index:
-        new_df.loc[i,"Team"] = teams.loc[new_df.loc[i,"team_id"],"name"]
-    new_df.sort_values([column,"Team"],ascending=ascending,inplace=True)
+        new_df.loc[i,"Équipe"] = teams.loc[new_df.loc[i,"team_id"],"name"]
+    new_df.sort_values([column,"Équipe"],ascending=ascending,inplace=True)
     new_df.reset_index(drop=True,inplace=True)
     if title!=None:
         st.text(title)
     col1, col2, col3 = st.columns(3)
     with col1:
         if percent:
-            product_card(new_df.loc[0,"Team"],price=f"{round(new_df.loc[0,column],rounding)}%",product_image=teams.loc[new_df.loc[0,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key="1_"+column)
+            product_card(new_df.loc[0,"Équipe"],price=f"{round(new_df.loc[0,column],rounding)}%",product_image=teams.loc[new_df.loc[0,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key="1_"+column)
         else:
-            product_card(new_df.loc[0,"Team"],price=round(new_df.loc[0,column],rounding),product_image=teams.loc[new_df.loc[0,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key="1_"+column)
+            product_card(new_df.loc[0,"Équipe"],price=round(new_df.loc[0,column],rounding),product_image=teams.loc[new_df.loc[0,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key="1_"+column)
     with col2:
         if percent:
-            product_card(new_df.loc[1,"Team"],price=f"{round(new_df.loc[1,column],rounding)}%",product_image=teams.loc[new_df.loc[1,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key="2_"+column)
+            product_card(new_df.loc[1,"Équipe"],price=f"{round(new_df.loc[1,column],rounding)}%",product_image=teams.loc[new_df.loc[1,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key="2_"+column)
         else:
-            product_card(new_df.loc[1,"Team"],price=round(new_df.loc[1,column],rounding),product_image=teams.loc[new_df.loc[1,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key="2_"+column)
+            product_card(new_df.loc[1,"Équipe"],price=round(new_df.loc[1,column],rounding),product_image=teams.loc[new_df.loc[1,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key="2_"+column)
     with col3:
         if percent:
-            product_card(new_df.loc[2,"Team"],price=f"{round(new_df.loc[2,column],rounding)}%",product_image=teams.loc[new_df.loc[2,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key="3_"+column)
+            product_card(new_df.loc[2,"Équipe"],price=f"{round(new_df.loc[2,column],rounding)}%",product_image=teams.loc[new_df.loc[2,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key="3_"+column)
         else:
-            product_card(new_df.loc[2,"Team"],price=round(new_df.loc[2,column],rounding),product_image=teams.loc[new_df.loc[2,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key="3_"+column)
+            product_card(new_df.loc[2,"Équipe"],price=round(new_df.loc[2,column],rounding),product_image=teams.loc[new_df.loc[2,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key="3_"+column)
     reste = new_df.loc[3:].copy()
-    reste["Rank"] = range(4,reste.shape[0]+4)
+    reste["Rang"] = range(4,reste.shape[0]+4)
     reste.rename(columns={column: name},inplace=True)
-    st.dataframe(reste.set_index("Rank")[["Team",name]])
+    st.dataframe(reste.set_index("Rang")[["Équipe",name]])
 
 if not ("team" in st.session_state):
     st.session_state.team = None
@@ -50,6 +60,10 @@ if not ("team" in st.session_state):
 @st.fragment
 def show_penalty_types(base_df: pd.DataFrame):
     """
+    Fonction qui affiche la distribution des types de pénalité pour une équipe + comparaison avec le reste de la ligue. 
+    
+    Entrées
+        base_df: données à utiliser
     """
     st.session_state.team = st.selectbox("Équipe",options=teams.name.to_list(),placeholder="Choisissez une équipe")
     id_equipe = teams[teams.name==st.session_state.team].index.to_list()[0]
@@ -132,11 +146,11 @@ with st.container():
     st.header("Classement")
     if go:
         classement = standings[["team_id","games_played","reg_wins","non_reg_wins","non_reg_losses","reg_losses","wins_pct","points"]].reset_index()
-        classement["Team"] = ""
+        classement["Équipe"] = ""
         for i in classement.index:
-            classement.loc[i,"Team"] = teams.loc[classement.loc[i,"team_id"],"name"]
-        classement.rename(columns={"rank": "Rank", "games_played": "GP", "reg_wins": "W", "non_reg_wins": "OTW", "non_reg_losses": "OTL", "reg_losses": "L", "wins_pct": "PCT", "points": "PTS"},inplace=True)
-        st.dataframe(classement.set_index("Rank")[["Team","GP","PTS","W","OTW","OTL","L","PCT"]])
+            classement.loc[i,"Équipe"] = teams.loc[classement.loc[i,"team_id"],"name"]
+        classement.rename(columns={"rank": "Rang", "games_played": "PJ", "reg_wins": "V", "non_reg_wins": "VP", "non_reg_losses": "DP", "reg_losses": "D", "wins_pct": "%", "points": "PTS"},inplace=True)
+        st.dataframe(classement.set_index("Rang")[["Équipe","PJ","PTS","V","VP","DP","D","%"]])
         fig, ax = plt.subplots()
         for col in point_diff_all.columns:
             ax.plot(point_diff_all[col],label=col)
@@ -161,15 +175,15 @@ with st.container(border=True):
     st.header("Offensive")
     if go:
         st.subheader("Buts marqués")
-        show_visuals(standings,"goals_for","Total goals",False,0,"Total")
-        show_visuals(standings,"goals_for_avg","Average goals",False,2,"Moyenne")
+        show_visuals(standings,"goals_for","Nombre de buts",False,0,"Total")
+        show_visuals(standings,"goals_for_avg","Moyenne de buts",False,2,"Moyenne")
 
         st.subheader("Tirs au but")
-        show_visuals(standings,"shots","Total shots",False,0,"Total")
-        show_visuals(standings,"shots_avg","Average shots",False,2,"Moyenne")
+        show_visuals(standings,"shots","Nombre de tirs",False,0,"Total")
+        show_visuals(standings,"shots_avg","Moyenne de tirs",False,2,"Moyenne")
 
         st.subheader("Pourcentage de buts")
-        show_visuals(standings,"goals_pct","Goals percentage",False,1,percent=True)
+        show_visuals(standings,"goals_pct","% de buts",False,1,percent=True)
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
@@ -178,16 +192,16 @@ with st.container(border=True):
     st.header("Défensive")
     if go:
         st.subheader("Buts accordés")
-        show_visuals(standings,"goals_against","Total goals",True,0,"Total")
-        show_visuals(standings,"goals_against_avg","Average goals",True,2,"Moyenne")
+        show_visuals(standings,"goals_against","Nombre de buts accordés",True,0,"Total")
+        show_visuals(standings,"goals_against_avg","Moyenne de buts accordés",True,2,"Moyenne")
 
         st.subheader("Tirs bloqués")
-        show_visuals(standings,"shots_blocked","Total shots blocked",False,0,"Total")
-        show_visuals(standings,"shots_blocked_pct","Shots blocked percentage",False,1,"Pourcentage",True)
+        show_visuals(standings,"shots_blocked","Nombre de tirs bloqués",False,0,"Total")
+        show_visuals(standings,"shots_blocked_pct","% de tirs bloqués",False,1,"Pourcentage",True)
 
         st.subheader("Mises en échec")
-        show_visuals(standings,"hits","Total hits",False,0,"Total")
-        show_visuals(standings,"hits_avg","Average hits",False,2,"Moyenne")
+        show_visuals(standings,"hits","Nombre de mises en échec",False,0,"Total")
+        show_visuals(standings,"hits_avg","Moyenne de mises en échec",False,2,"Moyenne")
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
@@ -196,10 +210,10 @@ with st.container(border=True):
     st.header("Supériorité et infériorité numérique")
     if go:
         st.subheader("Supériorité numérique")
-        show_visuals(standings,"power_play_pct","Power play percentage",False,1,percent=True)
+        show_visuals(standings,"power_play_pct","% d'avantage numérique",False,1,percent=True)
 
         st.subheader("Infériorité numérique")
-        show_visuals(standings,"penalty_kill_pct","Penalty kill percentage",False,1,percent=True)
+        show_visuals(standings,"penalty_kill_pct","% d'écoulement de pénalité",False,1,percent=True)
 
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
@@ -209,13 +223,13 @@ with st.container(border=True):
     st.header("À domicile")
     if go:
         st.subheader("Pourcentage de victoires")
-        show_visuals(standings,"home_wins_pct","Wins percentage",False,1,percent=True)
+        show_visuals(standings,"home_wins_pct","% de victoires",False,1,percent=True)
 
         st.subheader("Buts marqués")
-        show_visuals(standings,"home_goals_for_avg","Average goals",False,2,"Moyenne")
+        show_visuals(standings,"home_goals_for_avg","Moyenne de buts marqués",False,2,"Moyenne")
 
         st.subheader("Buts accordés")
-        show_visuals(standings,"home_goals_against_avg","Average goals",True,2,"Moyenne")
+        show_visuals(standings,"home_goals_against_avg","Moyenne de buts accordés",True,2,"Moyenne")
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
@@ -224,13 +238,13 @@ with st.container(border=True):
     st.header("À l'étranger")
     if go:
         st.subheader("Pourcentage de victoires")
-        show_visuals(standings,"visiting_wins_pct","Wins percentage",False,1,percent=True)
+        show_visuals(standings,"visiting_wins_pct","% de victoires",False,1,percent=True)
 
         st.subheader("Buts marqués")
-        show_visuals(standings,"visiting_goals_for_avg","Average goals",False,2,"Moyenne")
+        show_visuals(standings,"visiting_goals_for_avg","Moyenne de buts marqués",False,2,"Moyenne")
 
         st.subheader("Buts accordés")
-        show_visuals(standings,"visiting_goals_against_avg","Average goals",True,2,"Moyenne")
+        show_visuals(standings,"visiting_goals_against_avg","Moyenne de buts accordés",True,2,"Moyenne")
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
@@ -239,8 +253,8 @@ with st.container(border=True):
     st.header("Pénalités")
     if go:
         st.subheader("Minutes de pénalité")
-        show_visuals(standings,"penalty_minutes","Total penalty minutes",False,0,"Total")
-        show_visuals(standings,"penalty_minutes_avg","Average penalty minutes",False,2,"Moyenne")
+        show_visuals(standings,"penalty_minutes","Minutes de pénalité",False,0,"Total")
+        show_visuals(standings,"penalty_minutes_avg","Moyenne de minutes de pénalité",False,2,"Moyenne")
 
         st.subheader("Types de pénalité")
         if penalties.shape[0]>0:
@@ -255,11 +269,11 @@ with st.container(border=True):
     st.header("Autres statistiques")
     if go:
         st.subheader("Spectateurs")
-        show_visuals(standings,"home_tot_attendance","Total home attendance",False,0,"Total")
-        show_visuals(standings,"home_avg_attendance","Average home attendance",False,1,"Moyenne")
+        show_visuals(standings,"home_tot_attendance","Nombre de spectateurs à domicile",False,0,"Total")
+        show_visuals(standings,"home_avg_attendance","Moyenne de spectateurs à domicile",False,1,"Moyenne")
 
         st.subheader("Marquer le premier but")
-        show_visuals(standings,"first_goals_pct","First goals percentage",False,1,"Pourcentage",True)
+        show_visuals(standings,"first_goals_pct","% de premiers buts marqués",False,1,"Pourcentage",True)
 
         st.subheader("Différentiel de buts")
         fig, ax = plt.subplots()
@@ -272,15 +286,3 @@ with st.container(border=True):
         st.pyplot(fig)
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
-
-
-# with st.container(border=True):
-#     st.header("Développement")
-#     if go:
-#         st.subheader("(tests)")
-#         st.dataframe(teams)
-#         st.dataframe(games)
-#         st.dataframe(standings)
-#         st.dataframe(penalties)
-#     else:
-#         st.info("Cliquez sur le bouton pour récupérer les données.")
