@@ -349,7 +349,7 @@ def process_standings_advanced(id_saison: int, nom_saison: str) -> pd.DataFrame:
         nom_saison: nom d'une saison
     
     Sortie
-        données traitées avancées du classement
+        données avancées traitées du classement
     """
     if os.path.exists(f"./cache/traitees/{nom_saison}/standings_df.csv"):
         standings = pd.read_csv(f"./cache/traitees/{nom_saison}/standings_df.csv")
