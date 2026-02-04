@@ -13,6 +13,16 @@ plt.style.use('dark_background')
 
 def show_visuals(base_df: pd.DataFrame, column: str, name: str, ascending: bool, rounding: int, title: str = None, percent: bool = False):
     """
+    Fonction qui affiche le classement des joueuses selon une variable. 
+    
+    Entrées
+        base_df: données à utiliser
+        column: variable à utiliser
+        name: nom de la variable à afficher
+        ascending: si on classe en ordre croissant
+        rounding: arrondissement des données
+        title: titre du classement
+        percent: si on affiche le symbole de %
     """
     new_df = base_df[["player_name","player_image","team_id","position",column]].reset_index(drop=True)
     new_df["Équipe"] = ""
@@ -61,6 +71,10 @@ if not ("player" in st.session_state):
 @st.fragment
 def show_penalty_types(base_df: pd.DataFrame):
     """
+    Fonction qui affiche la distribution des types de pénalité pour une joueuse + comparaison avec le reste de son équipe. 
+    
+    Entrées
+        base_df: données à utiliser
     """
     with st.container(horizontal=True):
         if equipe!="Toutes":
@@ -226,15 +240,3 @@ with st.container(border=True):
         show_visuals(skaters[skaters.games_played>=5],"first_goals_pct","% de premier but d'une partie",False,1,"(au moins 5 parties jouées)",True)
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
-
-
-# with st.container(border=True):
-#     st.header("Développement")
-#     if go:
-#         st.subheader("(tests)")
-#         st.dataframe(teams)
-#         # st.dataframe(skaters)
-#         st.dataframe(goalies)
-#         # st.dataframe(penalties)
-#     else:
-#         st.info("Cliquez sur le bouton pour récupérer les données.")

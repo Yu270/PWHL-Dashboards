@@ -13,6 +13,11 @@ plt.style.use('dark_background')
 
 def show_visuals(base_df: pd.DataFrame, country: str):
     """
+    Fonction qui affiche le classement des équipes selon leur nombre de joueuses d'un pays. 
+    
+    Entrées
+        base_df: données à utiliser
+        country: pays à utiliser
     """
     new_df = base_df[["team_id",f"count_{country}",f"freq_{country}"]].copy()
     new_df["Équipe"] = ""
@@ -35,6 +40,11 @@ def show_visuals(base_df: pd.DataFrame, country: str):
 
 def show_plots(id_equipe: int, base_df: pd.DataFrame):
     """
+    Fonction qui affiche la distribution des nationalités des joueuses d'une équipe. 
+
+    Entrées
+        id_equipe: identifiant de l'équipe
+        base_df: données à utiliser
     """
     st.subheader(teams.loc[id_equipe,"name"])
     new_df = base_df[base_df.team_id==id_equipe].copy()
@@ -120,13 +130,3 @@ with st.container(border=True):
             show_plots(i,players)
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
-
-
-# with st.container(border=True):
-#     st.header("Développement")
-#     if go:
-#         st.subheader("(tests)")
-#         st.dataframe(teams)
-#         st.dataframe(players)
-#     else:
-#         st.info("Cliquez sur le bouton pour récupérer les données.")
