@@ -15,6 +15,11 @@ from .fetching import (
 
 def process_seasons() -> pd.DataFrame:
     """
+    Fonction qui traite les données des saisons.  
+    Enregistre les données dans la cache en plus de les retourner. 
+
+    Sortie
+        données traitées des saisons
     """
     if not os.path.exists("./cache/references/all_seasons.csv"):
         fetch_seasons()
@@ -23,6 +28,15 @@ def process_seasons() -> pd.DataFrame:
 
 def process_games(id_saison: int, nom_saison: str) -> pd.DataFrame:
     """
+    Fonction qui traite les données des parties d'une saison.  
+    Enregistre les données dans la cache en plus de les retourner. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
+    
+    Sortie
+        données traitées des parties
     """
     if not os.path.exists(f"./cache/traitees/{nom_saison}"):
         os.makedirs(f"./cache/traitees/{nom_saison}")
@@ -86,6 +100,15 @@ def process_games(id_saison: int, nom_saison: str) -> pd.DataFrame:
 
 def process_teams(id_saison: int, nom_saison: str) -> pd.DataFrame:
     """
+    Fonction qui traite les données des équipes d'une saison.  
+    Enregistre les données dans la cache en plus de les retourner. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
+    
+    Sortie
+        données traitées des équipes
     """
     if not os.path.exists(f"./cache/references/{nom_saison}/all_teams.csv"):
         fetch_teams(id_saison,nom_saison)
@@ -94,6 +117,15 @@ def process_teams(id_saison: int, nom_saison: str) -> pd.DataFrame:
 
 def process_standings(id_saison: int, nom_saison: str) -> pd.DataFrame:
     """
+    Fonction qui traite les données du classement d'une saison.  
+    Enregistre les données dans la cache en plus de les retourner. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
+    
+    Sortie
+        données traitées du classement
     """
     if os.path.exists(f"./cache/traitees/{nom_saison}/games_df.csv"):
         games = pd.read_csv(f"./cache/traitees/{nom_saison}/games_df.csv",index_col=0)
@@ -176,6 +208,15 @@ def process_standings(id_saison: int, nom_saison: str) -> pd.DataFrame:
 
 def process_skaters(id_saison: int, nom_saison: str) -> pd.DataFrame:
     """
+    Fonction qui traite les données des patineuses d'une saison.  
+    Enregistre les données dans la cache en plus de les retourner. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
+    
+    Sortie
+        données traitées des patineuses
     """
     if not os.path.exists(f"./cache/traitees/{nom_saison}"):
         os.makedirs(f"./cache/traitees/{nom_saison}")
@@ -220,6 +261,15 @@ def process_skaters(id_saison: int, nom_saison: str) -> pd.DataFrame:
 
 def process_goalies(id_saison: int, nom_saison: str) -> pd.DataFrame:
     """
+    Fonction qui traite les données des gardiennes d'une saison.  
+    Enregistre les données dans la cache en plus de les retourner. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
+    
+    Sortie
+        données traitées des gardiennes
     """
     if not os.path.exists(f"./cache/traitees/{nom_saison}"):
         os.makedirs(f"./cache/traitees/{nom_saison}")
@@ -254,6 +304,15 @@ def process_goalies(id_saison: int, nom_saison: str) -> pd.DataFrame:
 
 def process_penalties(id_saison: int, nom_saison: str) -> pd.DataFrame:
     """
+    Fonction qui traite les données des pénalités d'une saison.  
+    Enregistre les données dans la cache en plus de les retourner. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
+    
+    Sortie
+        données traitées des pénalités
     """
     if os.path.exists(f"./cache/traitees/{nom_saison}/games_df.csv"):
         games = pd.read_csv(f"./cache/traitees/{nom_saison}/games_df.csv",index_col=0)
@@ -282,6 +341,15 @@ def process_penalties(id_saison: int, nom_saison: str) -> pd.DataFrame:
 
 def process_standings_advanced(id_saison: int, nom_saison: str) -> pd.DataFrame:
     """
+    Fonction qui ajoute des données au classement d'une saison.  
+    Enregistre les données dans la cache en plus de les retourner. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
+    
+    Sortie
+        données traitées avancées du classement
     """
     if os.path.exists(f"./cache/traitees/{nom_saison}/standings_df.csv"):
         standings = pd.read_csv(f"./cache/traitees/{nom_saison}/standings_df.csv")

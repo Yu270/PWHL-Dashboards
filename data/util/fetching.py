@@ -6,6 +6,8 @@ import pandas as pd
 
 def fetch_seasons():
     """
+    Fonction qui récupère les données des saisons.  
+    Fait un appel à l'API et stocke les données dans la cache. 
     """
     if not os.path.exists("./cache/references"):
         os.makedirs("./cache/references")
@@ -32,6 +34,12 @@ def fetch_seasons():
 
 def fetch_games(id_saison: int, nom_saison: str):
     """
+    Fonction qui récupère les données des parties d'une saison.  
+    Fait un appel à l'API et stocke les données dans la cache. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
     """
     if not os.path.exists(f"./cache/brutes/{nom_saison}"):
         os.makedirs(f"./cache/brutes/{nom_saison}")
@@ -58,6 +66,12 @@ def fetch_games(id_saison: int, nom_saison: str):
 
 def fetch_teams(id_saison: int, nom_saison: str):
     """
+    Fonction qui récupère les données des équipes d'une saison.  
+    Fait un appel à l'API et stocke les données dans la cache. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
     """
     if not os.path.exists(f"./cache/references/{nom_saison}"):
         os.makedirs(f"./cache/references/{nom_saison}")
@@ -84,6 +98,12 @@ def fetch_teams(id_saison: int, nom_saison: str):
 
 def fetch_standings(id_saison: int, nom_saison: str):
     """
+    Fonction qui récupère les données du classement d'une saison.  
+    Fait un appel à l'API et stocke les données dans la cache. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
     """
     if not os.path.exists(f"./cache/brutes/{nom_saison}"):
         os.makedirs(f"./cache/brutes/{nom_saison}")
@@ -110,6 +130,14 @@ def fetch_standings(id_saison: int, nom_saison: str):
 
 def fetch_skaters(id_equipe: int, code_equipe: str, id_saison: int, nom_saison: str):
     """
+    Fonction qui récupère les données des patineuses d'une saison.  
+    Fait un appel à l'API et stocke les données dans la cache. 
+
+    Entrées
+        id_equipe: identifiant d'une équipe
+        code_equipe: code d'une équipe
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
     """
     if not os.path.exists(f"./cache/brutes/{nom_saison}"):
         os.makedirs(f"./cache/brutes/{nom_saison}")
@@ -136,6 +164,14 @@ def fetch_skaters(id_equipe: int, code_equipe: str, id_saison: int, nom_saison: 
 
 def fetch_goalies(id_equipe: int, code_equipe: str, id_saison: int, nom_saison: str):
     """
+    Fonction qui récupère les données des gardiennes d'une saison.  
+    Fait un appel à l'API et stocke les données dans la cache. 
+
+    Entrées
+        id_equipe: identifiant d'une équipe
+        code_equipe: code d'une équipe
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
     """
     if not os.path.exists(f"./cache/brutes/{nom_saison}"):
         os.makedirs(f"./cache/brutes/{nom_saison}")
@@ -162,6 +198,12 @@ def fetch_goalies(id_equipe: int, code_equipe: str, id_saison: int, nom_saison: 
 
 def fetch_game_events(id_partie: int, nom_saison: str):
     """
+    Fonction qui récupère les événements des parties d'une saison.  
+    Fait un appel à l'API et stocke les données dans la cache. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
     """
     if not os.path.exists(f"./cache/brutes/{nom_saison}/games"):
         os.makedirs(f"./cache/brutes/{nom_saison}/games")
