@@ -15,23 +15,23 @@ def show_visuals(base_df: pd.DataFrame, country: str):
     """
     """
     new_df = base_df[["team_id",f"count_{country}",f"freq_{country}"]].copy()
-    new_df["Team"] = ""
+    new_df["Équipe"] = ""
     for i in new_df.index:
-        new_df.loc[i,"Team"] = teams.loc[new_df.loc[i,"team_id"],"name"]
+        new_df.loc[i,"Équipe"] = teams.loc[new_df.loc[i,"team_id"],"name"]
 
-    new_df.sort_values([f"freq_{country}","Team"],ascending=False,inplace=True)
+    new_df.sort_values([f"freq_{country}","Équipe"],ascending=False,inplace=True)
     new_df.reset_index(drop=True,inplace=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        product_card(new_df.loc[0,"Team"],price=f"{round(new_df.loc[0,f"freq_{country}"],1)}% ({round(new_df.loc[0,f"count_{country}"],0)})",product_image=teams.loc[new_df.loc[0,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key=f"1_freq_{country}")
+        product_card(new_df.loc[0,"Équipe"],price=f"{round(new_df.loc[0,f"freq_{country}"],1)}% ({round(new_df.loc[0,f"count_{country}"],0)})",product_image=teams.loc[new_df.loc[0,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key=f"1_freq_{country}")
     with col2:
-        product_card(new_df.loc[1,"Team"],price=f"{round(new_df.loc[1,f"freq_{country}"],1)}% ({round(new_df.loc[1,f"count_{country}"],0)})",product_image=teams.loc[new_df.loc[1,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key=f"2_freq_{country}")
+        product_card(new_df.loc[1,"Équipe"],price=f"{round(new_df.loc[1,f"freq_{country}"],1)}% ({round(new_df.loc[1,f"count_{country}"],0)})",product_image=teams.loc[new_df.loc[1,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key=f"2_freq_{country}")
     with col3:
-        product_card(new_df.loc[2,"Team"],price=f"{round(new_df.loc[2,f"freq_{country}"],1)}% ({round(new_df.loc[2,f"count_{country}"],0)})",product_image=teams.loc[new_df.loc[2,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key=f"3_freq_{country}")
+        product_card(new_df.loc[2,"Équipe"],price=f"{round(new_df.loc[2,f"freq_{country}"],1)}% ({round(new_df.loc[2,f"count_{country}"],0)})",product_image=teams.loc[new_df.loc[2,"team_id"],"team_logo_url"],picture_position="left",enable_animation=False,key=f"3_freq_{country}")
     reste = new_df.loc[3:].copy()
-    reste["Rank"] = range(4,reste.shape[0]+4)
-    reste.rename(columns={f"freq_{country}": "%", f"count_{country}": "Count"},inplace=True)
-    st.dataframe(reste.set_index("Rank")[["Team","%","Count"]])
+    reste["Rang"] = range(4,reste.shape[0]+4)
+    reste.rename(columns={f"freq_{country}": "%", f"count_{country}": "Nombre"},inplace=True)
+    st.dataframe(reste.set_index("Rang")[["Équipe","%","Nombre"]])
 
 def show_plots(id_equipe: int, base_df: pd.DataFrame):
     """

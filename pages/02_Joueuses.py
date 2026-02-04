@@ -15,9 +15,9 @@ def show_visuals(base_df: pd.DataFrame, column: str, name: str, ascending: bool,
     """
     """
     new_df = base_df[["player_name","player_image","team_id","position",column]].reset_index(drop=True)
-    new_df["Team"] = ""
+    new_df["Équipe"] = ""
     for i in new_df.index:
-        new_df.loc[i,"Team"] = teams.loc[new_df.loc[i,"team_id"],"name"]
+        new_df.loc[i,"Équipe"] = teams.loc[new_df.loc[i,"team_id"],"name"]
     new_df.sort_values([column,"player_name"],ascending=ascending,inplace=True)
     new_df.reset_index(drop=True,inplace=True)
     if title!=None:
@@ -26,31 +26,31 @@ def show_visuals(base_df: pd.DataFrame, column: str, name: str, ascending: bool,
         col1, col2, col3 = st.columns(3)
         with col1:
             if percent:
-                product_card(f"{new_df.loc[0,"player_name"]} ({new_df.loc[0,"position"]})",description=new_df.loc[0,"Team"],price=f"{round(new_df.loc[0,column],rounding)}%",product_image=new_df.loc[0,"player_image"],picture_position="left",enable_animation=False,key="1_"+column+"_"+str(base_df.shape[0]))
+                product_card(f"{new_df.loc[0,"player_name"]} ({new_df.loc[0,"position"]})",description=new_df.loc[0,"Équipe"],price=f"{round(new_df.loc[0,column],rounding)}%",product_image=new_df.loc[0,"player_image"],picture_position="left",enable_animation=False,key="1_"+column+"_"+str(base_df.shape[0]))
             else:
-                product_card(f"{new_df.loc[0,"player_name"]} ({new_df.loc[0,"position"]})",description=new_df.loc[0,"Team"],price=round(new_df.loc[0,column],rounding),product_image=new_df.loc[0,"player_image"],picture_position="left",enable_animation=False,key="1_"+column+"_"+str(base_df.shape[0]))
+                product_card(f"{new_df.loc[0,"player_name"]} ({new_df.loc[0,"position"]})",description=new_df.loc[0,"Équipe"],price=round(new_df.loc[0,column],rounding),product_image=new_df.loc[0,"player_image"],picture_position="left",enable_animation=False,key="1_"+column+"_"+str(base_df.shape[0]))
         with col2:
             if percent:
-                product_card(f"{new_df.loc[1,"player_name"]} ({new_df.loc[1,"position"]})",description=new_df.loc[1,"Team"],price=f"{round(new_df.loc[1,column],rounding)}%",product_image=new_df.loc[1,"player_image"],picture_position="left",enable_animation=False,key="2_"+column+"_"+str(base_df.shape[0]))
+                product_card(f"{new_df.loc[1,"player_name"]} ({new_df.loc[1,"position"]})",description=new_df.loc[1,"Équipe"],price=f"{round(new_df.loc[1,column],rounding)}%",product_image=new_df.loc[1,"player_image"],picture_position="left",enable_animation=False,key="2_"+column+"_"+str(base_df.shape[0]))
             else:
-                product_card(f"{new_df.loc[1,"player_name"]} ({new_df.loc[1,"position"]})",description=new_df.loc[1,"Team"],price=round(new_df.loc[1,column],rounding),product_image=new_df.loc[1,"player_image"],picture_position="left",enable_animation=False,key="2_"+column+"_"+str(base_df.shape[0]))
+                product_card(f"{new_df.loc[1,"player_name"]} ({new_df.loc[1,"position"]})",description=new_df.loc[1,"Équipe"],price=round(new_df.loc[1,column],rounding),product_image=new_df.loc[1,"player_image"],picture_position="left",enable_animation=False,key="2_"+column+"_"+str(base_df.shape[0]))
         with col3:
             if percent:
-                product_card(f"{new_df.loc[2,"player_name"]} ({new_df.loc[2,"position"]})",description=new_df.loc[2,"Team"],price=f"{round(new_df.loc[2,column],rounding)}%",product_image=new_df.loc[2,"player_image"],picture_position="left",enable_animation=False,key="3_"+column+"_"+str(base_df.shape[0]))
+                product_card(f"{new_df.loc[2,"player_name"]} ({new_df.loc[2,"position"]})",description=new_df.loc[2,"Équipe"],price=f"{round(new_df.loc[2,column],rounding)}%",product_image=new_df.loc[2,"player_image"],picture_position="left",enable_animation=False,key="3_"+column+"_"+str(base_df.shape[0]))
             else:
-                product_card(f"{new_df.loc[2,"player_name"]} ({new_df.loc[2,"position"]})",description=new_df.loc[2,"Team"],price=round(new_df.loc[2,column],rounding),product_image=new_df.loc[2,"player_image"],picture_position="left",enable_animation=False,key="3_"+column+"_"+str(base_df.shape[0]))
+                product_card(f"{new_df.loc[2,"player_name"]} ({new_df.loc[2,"position"]})",description=new_df.loc[2,"Équipe"],price=round(new_df.loc[2,column],rounding),product_image=new_df.loc[2,"player_image"],picture_position="left",enable_animation=False,key="3_"+column+"_"+str(base_df.shape[0]))
         reste = new_df.loc[3:9].copy()
-        reste["Rank"] = range(4,reste.shape[0]+4)
-        reste.rename(columns={"player_name": "Name", "position": "Position", column: name},inplace=True)
-        st.dataframe(reste.set_index("Rank")[["Name","Position","Team",name]])
+        reste["Rang"] = range(4,reste.shape[0]+4)
+        reste.rename(columns={"player_name": "Nom", "position": "Position", column: name},inplace=True)
+        st.dataframe(reste.set_index("Rang")[["Nom","Position","Équipe",name]])
     else:
         cols = st.columns(new_df.shape[0])
         for i,col in enumerate(cols):
             with col:
                 if percent:
-                    product_card(f"{new_df.loc[i,"player_name"]} ({new_df.loc[i,"position"]})",description=new_df.loc[i,"Team"],price=f"{round(new_df.loc[i,column],rounding)}%",product_image=new_df.loc[i,"player_image"],picture_position="left",enable_animation=False,key=str(i+1)+"_"+column+"_"+str(base_df.shape[0]))
+                    product_card(f"{new_df.loc[i,"player_name"]} ({new_df.loc[i,"position"]})",description=new_df.loc[i,"Équipe"],price=f"{round(new_df.loc[i,column],rounding)}%",product_image=new_df.loc[i,"player_image"],picture_position="left",enable_animation=False,key=str(i+1)+"_"+column+"_"+str(base_df.shape[0]))
                 else:
-                    product_card(f"{new_df.loc[i,"player_name"]} ({new_df.loc[i,"position"]})",description=new_df.loc[i,"Team"],price=round(new_df.loc[i,column],rounding),product_image=new_df.loc[i,"player_image"],picture_position="left",enable_animation=False,key=str(i+1)+"_"+column+"_"+str(base_df.shape[0]))
+                    product_card(f"{new_df.loc[i,"player_name"]} ({new_df.loc[i,"position"]})",description=new_df.loc[i,"Équipe"],price=round(new_df.loc[i,column],rounding),product_image=new_df.loc[i,"player_image"],picture_position="left",enable_animation=False,key=str(i+1)+"_"+column+"_"+str(base_df.shape[0]))
 
 if not ("team" in st.session_state):
     st.session_state.team = None
@@ -124,25 +124,25 @@ with st.container(border=True):
     st.header("Offensive")
     if go:
         st.subheader("Buts")
-        show_visuals(skaters,"goals","Total goals",False,0,"Total")
-        show_visuals(skaters[skaters.games_played>=5],"goals_avg","Average goals",False,2,"Moyenne (au moins 5 parties jouées)")
+        show_visuals(skaters,"goals","Nombre de buts",False,0,"Total")
+        show_visuals(skaters[skaters.games_played>=5],"goals_avg","Moyenne de buts",False,2,"Moyenne (au moins 5 parties jouées)")
 
         st.subheader("Assistances")
-        show_visuals(skaters,"assists","Total assists",False,0,"Total")
-        show_visuals(skaters[skaters.games_played>=5],"assists_avg","Average assists",False,2,"Moyenne (au moins 5 parties jouées)")
+        show_visuals(skaters,"assists","Nombre d'assistances",False,0,"Total")
+        show_visuals(skaters[skaters.games_played>=5],"assists_avg","Moyenne d'assistances",False,2,"Moyenne (au moins 5 parties jouées)")
 
         st.subheader("Points")
-        show_visuals(skaters,"points","Total points",False,0,"Total")
-        show_visuals(skaters[skaters.games_played>=5],"points_avg","Average points",False,2,"Moyenne (au moins 5 parties jouées)")
-        show_visuals(skaters[skaters.games_played>=5],"min_for_point","Minutes played for 1 point",True,2,"Minutes de jeu pour 1 point (au moins 5 parties jouées)")
+        show_visuals(skaters,"points","Nombre de points",False,0,"Total")
+        show_visuals(skaters[skaters.games_played>=5],"points_avg","Moyenne de points",False,2,"Moyenne (au moins 5 parties jouées)")
+        show_visuals(skaters[skaters.games_played>=5],"min_for_point","Minutes jouées pour 1 point",True,2,"Minutes de jeu pour 1 point (au moins 5 parties jouées)")
 
         st.subheader("Tirs au but")
-        show_visuals(skaters,"shots","Total shots",False,0,"Total")
-        show_visuals(skaters[skaters.games_played>=5],"shots_avg","Average shots",False,2,"Moyenne (au moins 5 parties jouées)")
-        show_visuals(skaters[skaters.games_played>=5],"min_for_shot","Minutes played for 1 shot",True,2,"Minutes de jeu pour 1 tir (au moins 5 parties jouées)")
+        show_visuals(skaters,"shots","Nombre de tirs",False,0,"Total")
+        show_visuals(skaters[skaters.games_played>=5],"shots_avg","Moyenne de tirs",False,2,"Moyenne (au moins 5 parties jouées)")
+        show_visuals(skaters[skaters.games_played>=5],"min_for_shot","Minutes jouées pour 1 tir",True,2,"Minutes de jeu pour 1 tir (au moins 5 parties jouées)")
 
         st.subheader("Pourcentage de buts")
-        show_visuals(skaters[skaters.shots>=5],"goals_pct","Goals percentage",False,1,"(au moins 5 tirs au but effectués)",True)
+        show_visuals(skaters[skaters.shots>=5],"goals_pct","% de buts",False,1,"(au moins 5 tirs au but effectués)",True)
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
@@ -151,12 +151,12 @@ with st.container(border=True):
     st.header("Défensive")
     if go:
         st.subheader("Mises en échec")
-        show_visuals(skaters,"hits","Total hits",False,0,"Total")
-        show_visuals(skaters[skaters.games_played>=5],"hits_avg","Average hits",False,2,"Moyenne (au moins 5 parties jouées)")
+        show_visuals(skaters,"hits","Nombre de mises en échec",False,0,"Total")
+        show_visuals(skaters[skaters.games_played>=5],"hits_avg","Moyenne de mises en échec",False,2,"Moyenne (au moins 5 parties jouées)")
 
         st.subheader("Tirs bloqués")
-        show_visuals(skaters,"shots_blocked","Total shots blocked",False,0,"Total")
-        show_visuals(skaters[skaters.games_played>=5],"shots_blocked_avg","Average shots blocked",False,2,"Moyenne (au moins 5 parties jouées)")
+        show_visuals(skaters,"shots_blocked","Nombre de tirs bloqués",False,0,"Total")
+        show_visuals(skaters[skaters.games_played>=5],"shots_blocked_avg","Moyenne de tirs bloqués",False,2,"Moyenne (au moins 5 parties jouées)")
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
@@ -165,18 +165,18 @@ with st.container(border=True):
     st.header("Gardiennes")
     if go:
         st.subheader("Arrêts")
-        show_visuals(goalies,"saves","Total saves",False,0,"Total")
-        show_visuals(goalies[goalies.games_played>=3],"saves_pct","Saves percentage",False,1,"% d'arrêts (au moins 3 parties jouées)",True)
+        show_visuals(goalies,"saves","Nombre d'arrêts",False,0,"Total")
+        show_visuals(goalies[goalies.games_played>=3],"saves_pct","% d'arrêts",False,1,"% d'arrêts (au moins 3 parties jouées)",True)
 
         st.subheader("Buts accordés")
-        show_visuals(goalies[goalies.games_played>=3],"goals_against_avg","Average goals against",True,2,"Moyenne (au moins 3 parties jouées)")
+        show_visuals(goalies[goalies.games_played>=3],"goals_against_avg","Moyenne de buts accordés",True,2,"Moyenne (au moins 3 parties jouées)")
 
         st.subheader("Victoires")
-        show_visuals(goalies,"wins","Total wins",False,0,"Total")
-        show_visuals(goalies[goalies.games_played>=3],"wins_pct","Wins percentage",False,1,"% de victoires (au moins 3 parties jouées)",True)
+        show_visuals(goalies,"wins","Nombre de victoires",False,0,"Total")
+        show_visuals(goalies[goalies.games_played>=3],"wins_pct","% de victoires",False,1,"% de victoires (au moins 3 parties jouées)",True)
 
         st.subheader("Jeux blancs")
-        show_visuals(goalies,"shutouts","Total shutouts",False,0,"Total")
+        show_visuals(goalies,"shutouts","Nombre de jeux blancs",False,0,"Total")
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
@@ -185,10 +185,10 @@ with st.container(border=True):
     st.header("Supériorité et infériorité numérique")
     if go:
         st.subheader("Buts en supériorité numérique")
-        show_visuals(skaters,"power_play_goals","Total power play goals",False,0)
+        show_visuals(skaters,"power_play_goals","Nombre de buts en supériorité numérique",False,0)
 
         st.subheader("Buts en infériorité numérique")
-        show_visuals(skaters,"short_handed_goals","Total short handed goals",False,0)
+        show_visuals(skaters,"short_handed_goals","Nombre de buts en infériorité numérique",False,0)
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
@@ -197,8 +197,8 @@ with st.container(border=True):
     st.header("Pénalités")
     if go:
         st.subheader("Minutes de pénalité")
-        show_visuals(skaters,"penalty_minutes","Total penalty minutes",False,0,"Total")
-        show_visuals(skaters[skaters.games_played>=5],"penalty_minutes_avg","Average penalty minutes",False,2,"Moyenne (au moins 5 parties jouées)")
+        show_visuals(skaters,"penalty_minutes","Minutes de pénalité",False,0,"Total")
+        show_visuals(skaters[skaters.games_played>=5],"penalty_minutes_avg","Moyenne de minutes de pénalité",False,2,"Moyenne (au moins 5 parties jouées)")
 
         st.subheader("Types de pénalité")
         if penalties.shape[0]>0:
@@ -213,18 +213,17 @@ with st.container(border=True):
     st.header("Autres statistiques")
     if go:
         st.subheader("Temps sur la glace (patineuses)")
-        show_visuals(skaters,"ice_time_min","Total ice time",False,1,"Total")
-        show_visuals(skaters[skaters.games_played>=5],"ice_time_min_avg","Average ice time",False,2,"Moyenne (au moins 5 parties jouées)")
+        show_visuals(skaters,"ice_time_min","Temps de jeu total (min)",False,1,"Total")
+        show_visuals(skaters[skaters.games_played>=5],"ice_time_min_avg","Temps de jeu moyen (min)",False,2,"Moyenne (au moins 5 parties jouées)")
         
         st.subheader("Temps sur la glace (gardiennes)")
-        goalies["ice_time_min"] = goalies["ice_time"]/60
-        show_visuals(goalies,"ice_time_min","Total ice time",False,1)
+        show_visuals(goalies,"ice_time_min","Temps de jeu total (min)",False,1)
 
         st.subheader("Mises au jeu")
-        show_visuals(skaters[skaters.faceoff_attempts>=5],"faceoff_pct","Faceoff percentage",False,1,"(au moins 5 mises au jeu effectuées)",True)
+        show_visuals(skaters[skaters.faceoff_attempts>=5],"faceoff_pct","% de mises au jeu gagnées",False,1,"(au moins 5 mises au jeu effectuées)",True)
 
         st.subheader("Marque le premier but d'une partie")
-        show_visuals(skaters[skaters.games_played>=5],"first_goals_pct","Scored the first goal",False,1,"(au moins 5 parties jouées)",True)
+        show_visuals(skaters[skaters.games_played>=5],"first_goals_pct","% de premier but d'une partie",False,1,"(au moins 5 parties jouées)",True)
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
