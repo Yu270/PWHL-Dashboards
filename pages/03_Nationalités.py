@@ -38,6 +38,32 @@ def show_visuals(base_df: pd.DataFrame, country: str):
     reste.rename(columns={f"freq_{country}": "%", f"count_{country}": "Nombre"},inplace=True)
     st.dataframe(reste.set_index("Rang")[["Équipe","%","Nombre"]])
 
+if not ("nation" in st.session_state):
+    st.session_state.nation = None
+
+@st.fragment
+def show_list(base_df: pd.DataFrame):
+    """
+    Fonction qui affiche la liste des joueuses selon leur nationalité. 
+
+    Entrée
+        base_df: données à utiliser
+    """
+    new_df = base_df[["player_id","player_name","team_id","birthcntry"]].copy()
+    new_df.drop_duplicates("player_id",inplace=True)
+    new_df.set_index("player_id",inplace=True)
+    new_df["Équipe"] = ""
+    for i in new_df.index:
+        new_df.loc[i,"Équipe"] = teams.loc[new_df.loc[i,"team_id"],"name"]
+    new_df.rename(columns={"player_name": "Nom", "birthcntry": "Nationalité"},inplace=True)
+    nations = new_df["Nationalité"].unique().tolist()
+    nations.sort()
+    
+    st.session_state.nation = st.selectbox("Nationalité",options=nations,index=nations.index("Canada"),placeholder="Choisissez une nationalité")
+    new_df = new_df[new_df["Nationalité"]==st.session_state.nation].copy()
+    new_df.sort_values(["Équipe","Nom"],inplace=True)
+    st.dataframe(new_df.reset_index(drop=True)[["Nom","Équipe","Nationalité"]])
+
 def show_plots(id_equipe: int, base_df: pd.DataFrame):
     """
     Fonction qui affiche la distribution des nationalités des joueuses d'une équipe. 
@@ -119,6 +145,14 @@ with st.container(border=True):
         st.subheader("Autres")
         show_visuals(df,"oth")
 
+    else:
+        st.info("Cliquez sur le bouton pour récupérer les données.")
+
+
+with st.container(border=True):
+    st.header("Par nationalité")
+    if go:
+        show_list(players)
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
