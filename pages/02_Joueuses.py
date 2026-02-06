@@ -11,6 +11,10 @@ st.title("Joueuses")
 plt.style.use('dark_background')
 
 
+if not ("select" in st.session_state):
+    st.session_state.select = None
+
+@st.fragment
 def show_visuals(base_df: pd.DataFrame, column: str, name: str, ascending: bool, rounding: int, title: str = None, percent: bool = False):
     """
     Fonction qui affiche le classement des joueuses selon une variable. 
@@ -49,10 +53,20 @@ def show_visuals(base_df: pd.DataFrame, column: str, name: str, ascending: bool,
                 product_card(f"{new_df.loc[2,"player_name"]} ({new_df.loc[2,"position"]})",description=new_df.loc[2,"Équipe"],price=f"{round(new_df.loc[2,column],rounding)}%",product_image=new_df.loc[2,"player_image"],picture_position="left",enable_animation=False,key="3_"+column+"_"+str(base_df.shape[0]))
             else:
                 product_card(f"{new_df.loc[2,"player_name"]} ({new_df.loc[2,"position"]})",description=new_df.loc[2,"Équipe"],price=round(new_df.loc[2,column],rounding),product_image=new_df.loc[2,"player_image"],picture_position="left",enable_animation=False,key="3_"+column+"_"+str(base_df.shape[0]))
-        reste = new_df.loc[3:9].copy()
+        reste = new_df.loc[3:].copy()
         reste["Rang"] = range(4,reste.shape[0]+4)
         reste.rename(columns={"player_name": "Nom", "position": "Position", column: name},inplace=True)
-        st.dataframe(reste.set_index("Rang")[["Nom","Position","Équipe",name]])
+        st.dataframe(reste.loc[:9].set_index("Rang")[["Nom","Position","Équipe",name]])
+        if reste.shape[0]>7:
+            others = reste.Nom.to_list()
+            others.sort()
+            st.session_state.select = st.selectbox("Voir une autre joueuse",options=[None]+others,placeholder="Choisissez une joueuse",key="select_"+column+"_"+str(base_df.shape[0]))
+            if st.session_state.select!=None:
+                idx = reste[reste.Nom==st.session_state.select].index.to_list()[0]
+                if percent:
+                    product_card(f"{reste.loc[idx,"Nom"]} ({reste.loc[idx,"Position"]})",description=reste.loc[idx,"Équipe"],price=f"{round(reste.loc[idx,name],rounding)}%",product_image=reste.loc[idx,"player_image"],picture_position="left",enable_animation=False,key="0_"+column+"_"+str(base_df.shape[0]))
+                else:
+                    product_card(f"{reste.loc[idx,"Nom"]} ({reste.loc[idx,"Position"]})",description=reste.loc[idx,"Équipe"],price=round(reste.loc[idx,name],rounding),product_image=reste.loc[idx,"player_image"],picture_position="left",enable_animation=False,key="0_"+column+"_"+str(base_df.shape[0]))
     else:
         cols = st.columns(new_df.shape[0])
         for i,col in enumerate(cols):
