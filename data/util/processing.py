@@ -255,6 +255,9 @@ def process_skaters(id_saison: int, nom_saison: str) -> pd.DataFrame:
     df["faceoff_pct"] = np.where(df["faceoff_attempts"]>0,100*df["faceoff_wins"]/df["faceoff_attempts"],0.0)
     df["first_goals_pct"] = np.where(df["games_played"]>0,100*df["first_goals"]/df["games_played"],0.0)
     df["season_id"] = id_saison
+    df.reset_index(inplace=True)
+    df["player_id"] = df.player_id.astype(str)+"-"+df.team_id.astype(str)
+    df.set_index("player_id",inplace=True)
     df.to_csv(f"./cache/traitees/{nom_saison}/skaters_df.csv")
     return df
 
@@ -298,6 +301,9 @@ def process_goalies(id_saison: int, nom_saison: str) -> pd.DataFrame:
     df["wins_pct"] = np.where(df["games_played"]>0,100*df["wins"]/df["games_played"],0.0)
     df["shootout_pct"] = np.where(df["shootout_attempts"]>0,100*df["shootout_saves"]/df["shootout_attempts"],0.0)
     df["season_id"] = id_saison
+    df.reset_index(inplace=True)
+    df["player_id"] = df.player_id.astype(str)+"-"+df.team_id.astype(str)
+    df.set_index("player_id",inplace=True)
     df.to_csv(f"./cache/traitees/{nom_saison}/goalies_df.csv")
     return df
 
@@ -335,6 +341,8 @@ def process_penalties(id_saison: int, nom_saison: str) -> pd.DataFrame:
     df = df[columns].copy()
     df.rename(columns={"id": "event_id","player_served": "player_served_id","time_off_formatted": "time_off","lang_penalty_description": "penalty_description", "period_id": "period"},inplace=True)
     df["season_id"] = id_saison
+    df["player_id"] = df.player_id.astype(str)+"-"+df.team_id.astype(str)
+    df["player_served_id"] = df.player_served_id.astype(str)+"-"+df.team_id.astype(str)
     df.to_csv(f"./cache/traitees/{nom_saison}/penalties_df.csv",index=False)
     return df
 
