@@ -121,9 +121,12 @@ with st.container():
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("Canada vs États-Unis")
-    if go:
+@st.fragment
+def can_vs_usa():
+    """
+    """
+    st.toggle("Afficher",key="can_vs_usa")
+    if st.session_state.get("can_vs_usa",False):
         all_teams = []
         for i in teams.index:
             data = {"team_id": i}
@@ -145,22 +148,42 @@ with st.container(border=True):
         st.subheader("Autres")
         show_visuals(df,"oth")
 
+with st.container(border=True):
+    st.header("Canada vs États-Unis")
+    if go:
+        can_vs_usa()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
+
+@st.fragment
+def par_nationalite():
+    """
+    """
+    st.toggle("Afficher",key="par_nationalite")
+    if st.session_state.get("par_nationalite",False):
+        show_list(players)
 
 with st.container(border=True):
     st.header("Par nationalité")
     if go:
-        show_list(players)
+        par_nationalite()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
+@st.fragment
+def par_equipe():
+    """
+    """
+    st.toggle("Afficher",key="par_equipe")
+    if st.session_state.get("par_equipe",False):
+        for i in teams.index:
+            show_plots(i,players)
+
 with st.container(border=True):
     st.header("Par équipe")
     if go:
-        for i in teams.index:
-            show_plots(i,players)
+        par_equipe()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")

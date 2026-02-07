@@ -171,9 +171,12 @@ with st.container():
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("Offensive")
-    if go:
+@st.fragment
+def offensive():
+    """
+    """
+    st.toggle("Afficher",key="offensive")
+    if st.session_state.get("offensive",False):
         st.subheader("Buts marqués")
         show_visuals(standings,"goals_for","Nombre de buts",False,0,"Total")
         show_visuals(standings,"goals_for_avg","Moyenne de buts",False,2,"Moyenne")
@@ -184,13 +187,21 @@ with st.container(border=True):
 
         st.subheader("Pourcentage de buts")
         show_visuals(standings,"goals_pct","% de buts",False,1,percent=True)
+
+with st.container(border=True):
+    st.header("Offensive")
+    if go:
+        offensive()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("Défensive")
-    if go:
+@st.fragment
+def defensive():
+    """
+    """
+    st.toggle("Afficher",key="defensive")
+    if st.session_state.get("defensive",False):
         st.subheader("Buts accordés")
         show_visuals(standings,"goals_against","Nombre de buts accordés",True,0,"Total")
         show_visuals(standings,"goals_against_avg","Moyenne de buts accordés",True,2,"Moyenne")
@@ -202,26 +213,41 @@ with st.container(border=True):
         st.subheader("Mises en échec")
         show_visuals(standings,"hits","Nombre de mises en échec",False,0,"Total")
         show_visuals(standings,"hits_avg","Moyenne de mises en échec",False,2,"Moyenne")
+
+with st.container(border=True):
+    st.header("Défensive")
+    if go:
+        defensive()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("Supériorité et infériorité numérique")
-    if go:
+@st.fragment
+def sup_inf_num():
+    """
+    """
+    st.toggle("Afficher",key="sup_inf_num")
+    if st.session_state.get("sup_inf_num",False):
         st.subheader("Supériorité numérique")
         show_visuals(standings,"power_play_pct","% d'avantage numérique",False,1,percent=True)
 
         st.subheader("Infériorité numérique")
         show_visuals(standings,"penalty_kill_pct","% d'écoulement de pénalité",False,1,percent=True)
 
+with st.container(border=True):
+    st.header("Supériorité et infériorité numérique")
+    if go:
+        sup_inf_num()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("À domicile")
-    if go:
+@st.fragment
+def domicile():
+    """
+    """
+    st.toggle("Afficher",key="domicile")
+    if st.session_state.get("domicile",False):
         st.subheader("Pourcentage de victoires")
         show_visuals(standings,"home_wins_pct","% de victoires",False,1,percent=True)
 
@@ -230,13 +256,21 @@ with st.container(border=True):
 
         st.subheader("Buts accordés")
         show_visuals(standings,"home_goals_against_avg","Moyenne de buts accordés",True,2,"Moyenne")
+
+with st.container(border=True):
+    st.header("À domicile")
+    if go:
+        domicile()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("À l'étranger")
-    if go:
+@st.fragment
+def etranger():
+    """
+    """
+    st.toggle("Afficher",key="etranger")
+    if st.session_state.get("etranger",False):
         st.subheader("Pourcentage de victoires")
         show_visuals(standings,"visiting_wins_pct","% de victoires",False,1,percent=True)
 
@@ -245,13 +279,21 @@ with st.container(border=True):
 
         st.subheader("Buts accordés")
         show_visuals(standings,"visiting_goals_against_avg","Moyenne de buts accordés",True,2,"Moyenne")
+
+with st.container(border=True):
+    st.header("À l'étranger")
+    if go:
+        etranger()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("Pénalités")
-    if go:
+@st.fragment
+def penalites():
+    """
+    """
+    st.toggle("Afficher",key="penalites")
+    if st.session_state.get("penalites",False):
         st.subheader("Minutes de pénalité")
         show_visuals(standings,"penalty_minutes","Minutes de pénalité",False,0,"Total")
         show_visuals(standings,"penalty_minutes_avg","Moyenne de minutes de pénalité",False,2,"Moyenne")
@@ -261,13 +303,21 @@ with st.container(border=True):
             show_penalty_types(penalties)
         else:
             st.error("Il n'y a aucune donnée de pénalités pour cette saison.")
+
+with st.container(border=True):
+    st.header("Pénalités")
+    if go:
+        penalites()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("Autres statistiques")
-    if go:
+@st.fragment
+def autres():
+    """
+    """
+    st.toggle("Afficher",key="autres")
+    if st.session_state.get("autres",False):
         st.subheader("Spectateurs")
         show_visuals(standings,"home_tot_attendance","Nombre de spectateurs à domicile",False,0,"Total")
         show_visuals(standings,"home_avg_attendance","Moyenne de spectateurs à domicile",False,1,"Moyenne")
@@ -284,5 +334,10 @@ with st.container(border=True):
         ax.set_ylabel("Différentiel de buts")
         fig.legend()
         st.pyplot(fig)
+
+with st.container(border=True):
+    st.header("Autres statistiques")
+    if go:
+        autres()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")

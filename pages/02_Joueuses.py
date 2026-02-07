@@ -148,9 +148,12 @@ with st.sidebar:
                 penalties = penalties[penalties.team_id==id_equipe].copy()
 
 
-with st.container(border=True):
-    st.header("Offensive")
-    if go:
+@st.fragment
+def offensive():
+    """
+    """
+    st.toggle("Afficher",key="offensive")
+    if st.session_state.get("offensive",False):
         st.subheader("Buts")
         show_visuals(skaters,"goals","Nombre de buts",False,0,"Total")
         show_visuals(skaters[skaters.games_played>=5],"goals_avg","Moyenne de buts",False,2,"Moyenne (au moins 5 parties jouées)")
@@ -171,13 +174,21 @@ with st.container(border=True):
 
         st.subheader("Pourcentage de buts")
         show_visuals(skaters[skaters.shots>=5],"goals_pct","% de buts",False,1,"(au moins 5 tirs au but effectués)",True)
+
+with st.container(border=True):
+    st.header("Offensive")
+    if go:
+        offensive()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("Défensive")
-    if go:
+@st.fragment
+def defensive():
+    """
+    """
+    st.toggle("Afficher",key="defensive")
+    if st.session_state.get("defensive",False):
         st.subheader("Mises en échec")
         show_visuals(skaters,"hits","Nombre de mises en échec",False,0,"Total")
         show_visuals(skaters[skaters.games_played>=5],"hits_avg","Moyenne de mises en échec",False,2,"Moyenne (au moins 5 parties jouées)")
@@ -185,13 +196,21 @@ with st.container(border=True):
         st.subheader("Tirs bloqués")
         show_visuals(skaters,"shots_blocked","Nombre de tirs bloqués",False,0,"Total")
         show_visuals(skaters[skaters.games_played>=5],"shots_blocked_avg","Moyenne de tirs bloqués",False,2,"Moyenne (au moins 5 parties jouées)")
+
+with st.container(border=True):
+    st.header("Défensive")
+    if go:
+        defensive()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("Gardiennes")
-    if go:
+@st.fragment
+def gardiennes():
+    """
+    """
+    st.toggle("Afficher",key="gardiennes")
+    if st.session_state.get("gardiennes",False):
         st.subheader("Arrêts")
         show_visuals(goalies,"saves","Nombre d'arrêts",False,0,"Total")
         show_visuals(goalies[goalies.games_played>=3],"saves_pct","% d'arrêts",False,1,"% d'arrêts (au moins 3 parties jouées)",True)
@@ -205,25 +224,41 @@ with st.container(border=True):
 
         st.subheader("Jeux blancs")
         show_visuals(goalies,"shutouts","Nombre de jeux blancs",False,0,"Total")
+
+with st.container(border=True):
+    st.header("Gardiennes")
+    if go:
+        gardiennes()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("Supériorité et infériorité numérique")
-    if go:
+@st.fragment
+def sup_inf_num():
+    """
+    """
+    st.toggle("Afficher",key="sup_inf_num")
+    if st.session_state.get("sup_inf_num",False):
         st.subheader("Buts en supériorité numérique")
         show_visuals(skaters,"power_play_goals","Nombre de buts en supériorité numérique",False,0)
 
         st.subheader("Buts en infériorité numérique")
         show_visuals(skaters,"short_handed_goals","Nombre de buts en infériorité numérique",False,0)
+
+with st.container(border=True):
+    st.header("Supériorité et infériorité numérique")
+    if go:
+        sup_inf_num()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("Pénalités")
-    if go:
+@st.fragment
+def penalites():
+    """
+    """
+    st.toggle("Afficher",key="penalites")
+    if st.session_state.get("penalites",False):
         st.subheader("Minutes de pénalité")
         show_visuals(skaters,"penalty_minutes","Minutes de pénalité",False,0,"Total")
         show_visuals(skaters[skaters.games_played>=5],"penalty_minutes_avg","Moyenne de minutes de pénalité",False,2,"Moyenne (au moins 5 parties jouées)")
@@ -233,13 +268,21 @@ with st.container(border=True):
             show_penalty_types(penalties)
         else:
             st.error("Il n'y a aucune donnée de pénalités pour cette saison.")
+
+with st.container(border=True):
+    st.header("Pénalités")
+    if go:
+        penalites()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-with st.container(border=True):
-    st.header("Autres statistiques")
-    if go:
+@st.fragment
+def autres():
+    """
+    """
+    st.toggle("Afficher",key="autres")
+    if st.session_state.get("autres",False):
         st.subheader("Temps sur la glace (patineuses)")
         show_visuals(skaters,"ice_time_min","Temps de jeu total (min)",False,1,"Total")
         show_visuals(skaters[skaters.games_played>=5],"ice_time_min_avg","Temps de jeu moyen (min)",False,2,"Moyenne (au moins 5 parties jouées)")
@@ -252,5 +295,10 @@ with st.container(border=True):
 
         st.subheader("Marque le premier but d'une partie")
         show_visuals(skaters[skaters.games_played>=5],"first_goals_pct","% de premier but d'une partie",False,1,"(au moins 5 parties jouées)",True)
+
+with st.container(border=True):
+    st.header("Autres statistiques")
+    if go:
+        autres()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
