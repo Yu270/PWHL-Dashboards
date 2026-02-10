@@ -21,9 +21,20 @@ def process_seasons() -> pd.DataFrame:
     Sortie
         données traitées des saisons
     """
+    if not os.path.exists(f"./cache/traitees"):
+        os.makedirs(f"./cache/traitees")
+    
     if not os.path.exists("./cache/references/all_seasons.csv"):
         fetch_seasons()
-    return pd.read_csv("./cache/references/all_seasons.csv",index_col=0)
+    seasons = pd.read_csv("./cache/references/all_seasons.csv",index_col=0)
+    seasons["games_played"] = None
+    for id_saison in seasons.index:
+        if not os.path.exists(f"./cache/brutes/{seasons.loc[id_saison,"season_name"]}/all_games.csv"):
+            fetch_games(id_saison,seasons.loc[id_saison,"season_name"])
+        games = pd.read_csv(f"./cache/brutes/{seasons.loc[id_saison,"season_name"]}/all_games.csv",index_col=0)
+        seasons.loc[id_saison,"games_played"] = games[games.final==1].shape[0]
+    seasons.to_csv("./cache/traitees/all_seasons.csv")
+    return seasons
 
 
 def process_games(id_saison: int, nom_saison: str) -> pd.DataFrame:
