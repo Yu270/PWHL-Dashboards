@@ -350,7 +350,6 @@ def infos():
     st.toggle("Afficher",key="infos")
     if st.session_state.get("infos",False):
         st.subheader("Âge")
-        standings["age_avg"] = int(saison[:4])-standings["birthyear_avg"]
         show_visuals(standings,"age_avg","Âge moyen",True,2,"(pondéré par le nombre de parties jouées)")
 
         st.subheader("Taille")
