@@ -354,7 +354,7 @@ def infos():
         show_visuals(standings,"age_avg","Âge moyen",True,2,"(pondéré par le nombre de parties jouées)")
 
         st.subheader("Taille")
-        show_visuals(standings,"height_avg","Taille moyenne",False,2,"(pondérée par le nombre de parties jouées)")
+        show_visuals(standings,"height_avg","Taille moyenne (cm)",False,2,"(pondérée par le nombre de parties jouées)")
 
 with st.container(border=True):
     st.header("Informations sur les joueuses")
