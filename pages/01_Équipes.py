@@ -341,3 +341,24 @@ with st.container(border=True):
         autres()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
+
+
+@st.fragment
+def infos():
+    """
+    """
+    st.toggle("Afficher",key="infos")
+    if st.session_state.get("infos",False):
+        st.subheader("Âge")
+        standings["age_avg"] = int(saison[:4])-standings["birthyear_avg"]
+        show_visuals(standings,"age_avg","Âge moyen",True,2,"(pondéré par le nombre de parties jouées)")
+
+        st.subheader("Taille")
+        show_visuals(standings,"height_avg","Taille moyenne",False,2,"(pondérée par le nombre de parties jouées)")
+
+with st.container(border=True):
+    st.header("Informations sur les joueuses")
+    if go:
+        infos()
+    else:
+        st.info("Cliquez sur le bouton pour récupérer les données.")
