@@ -265,6 +265,7 @@ def process_skaters(id_saison: int, nom_saison: str) -> pd.DataFrame:
     df["shootout_pct"] = np.where(df["shootout_attempts"]>0,100*df["shootout_goals"]/df["shootout_attempts"],0.0)
     df["faceoff_pct"] = np.where(df["faceoff_attempts"]>0,100*df["faceoff_wins"]/df["faceoff_attempts"],0.0)
     df["first_goals_pct"] = np.where(df["games_played"]>0,100*df["first_goals"]/df["games_played"],0.0)
+    df["birthyear"] = df.birthdate.str[-4:].astype(int)
     df["feet"] = None
     df["inches"] = None
     df["height_cm"] = None
@@ -328,6 +329,7 @@ def process_goalies(id_saison: int, nom_saison: str) -> pd.DataFrame:
     df["saves_pct"] = np.where(df["shots_against"]>0,100*df["saves"]/df["shots_against"],0.0)
     df["wins_pct"] = np.where(df["games_played"]>0,100*df["wins"]/df["games_played"],0.0)
     df["shootout_pct"] = np.where(df["shootout_attempts"]>0,100*df["shootout_saves"]/df["shootout_attempts"],0.0)
+    df["birthyear"] = df.birthdate.str[-4:].astype(int)
     df["feet"] = None
     df["inches"] = None
     df["height_cm"] = None
@@ -426,6 +428,9 @@ def process_standings_advanced(id_saison: int, nom_saison: str) -> pd.DataFrame:
     df["shots_blocked_pct"] = np.where(df["shots_against"]+df["shots_blocked"]>0,100*df["shots_blocked"]/(df["shots_against"]+df["shots_blocked"]),0.0)
     df["goals_pct"] = np.where(df["shots"]>0,100*df["goals_for"]/df["shots"],0.0)
     df["first_goals_pct"] = np.where(df["games_played"]>0,100*df["first_goals"]/df["games_played"],0.0)
+    players = pd.concat((skaters[["team_id","birthyear"]],goalies[["team_id","birthyear"]]))
+    agg_temp = players.groupby("team_id").mean().reset_index().rename(columns={"birthyear": "birthyear_avg"})
+    df = pd.merge(df,agg_temp,how="left",on="team_id")
     df.set_index("rank",inplace=True)
     df.to_csv(f"./cache/traitees/{nom_saison}/standings_advanced_df.csv")
     return df
