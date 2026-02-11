@@ -265,8 +265,25 @@ def process_skaters(id_saison: int, nom_saison: str) -> pd.DataFrame:
     df["shootout_pct"] = np.where(df["shootout_attempts"]>0,100*df["shootout_goals"]/df["shootout_attempts"],0.0)
     df["faceoff_pct"] = np.where(df["faceoff_attempts"]>0,100*df["faceoff_wins"]/df["faceoff_attempts"],0.0)
     df["first_goals_pct"] = np.where(df["games_played"]>0,100*df["first_goals"]/df["games_played"],0.0)
-    df["season_id"] = id_saison
+    df["feet"] = None
+    df["inches"] = None
+    df["height_cm"] = None
     df.reset_index(inplace=True)
+    for i in df.index:
+        if df.loc[i,"height"]==df.loc[i,"height"]:
+            df.loc[i,"height"] = df.loc[i,"height"].replace("\"","")
+            df.loc[i,"height"] = df.loc[i,"height"].replace("’","'")
+            df.loc[i,"height"] = df.loc[i,"height"].replace("''","")
+            df.loc[i,"height"] = df.loc[i,"height"].replace("”","")
+            delim = df.loc[i,"height"].find("'")
+            df.loc[i,"feet"] = int(df.loc[i,"height"][:delim])
+            if len(df.loc[i,"height"])>delim+1:
+                df.loc[i,"inches"] = int(df.loc[i,"height"][delim+1:])
+            else:
+                df.loc[i,"inches"] = 0
+            df.loc[i,"height_cm"] = (12*df.loc[i,"feet"]+df.loc[i,"inches"])*2.54
+    df.drop(columns=["feet","inches"],inplace=True)
+    df["season_id"] = id_saison
     df["player_id"] = df.player_id.astype(str)+"-"+df.team_id.astype(str)
     df.set_index("player_id",inplace=True)
     df.to_csv(f"./cache/traitees/{nom_saison}/skaters_df.csv")
@@ -311,8 +328,25 @@ def process_goalies(id_saison: int, nom_saison: str) -> pd.DataFrame:
     df["saves_pct"] = np.where(df["shots_against"]>0,100*df["saves"]/df["shots_against"],0.0)
     df["wins_pct"] = np.where(df["games_played"]>0,100*df["wins"]/df["games_played"],0.0)
     df["shootout_pct"] = np.where(df["shootout_attempts"]>0,100*df["shootout_saves"]/df["shootout_attempts"],0.0)
-    df["season_id"] = id_saison
+    df["feet"] = None
+    df["inches"] = None
+    df["height_cm"] = None
     df.reset_index(inplace=True)
+    for i in df.index:
+        if df.loc[i,"height"]==df.loc[i,"height"]:
+            df.loc[i,"height"] = df.loc[i,"height"].replace("\"","")
+            df.loc[i,"height"] = df.loc[i,"height"].replace("’","'")
+            df.loc[i,"height"] = df.loc[i,"height"].replace("''","")
+            df.loc[i,"height"] = df.loc[i,"height"].replace("”","")
+            delim = df.loc[i,"height"].find("'")
+            df.loc[i,"feet"] = int(df.loc[i,"height"][:delim])
+            if len(df.loc[i,"height"])>delim+1:
+                df.loc[i,"inches"] = int(df.loc[i,"height"][delim+1:])
+            else:
+                df.loc[i,"inches"] = 0
+            df.loc[i,"height_cm"] = (12*df.loc[i,"feet"]+df.loc[i,"inches"])*2.54
+    df.drop(columns=["feet","inches"],inplace=True)
+    df["season_id"] = id_saison
     df["player_id"] = df.player_id.astype(str)+"-"+df.team_id.astype(str)
     df.set_index("player_id",inplace=True)
     df.to_csv(f"./cache/traitees/{nom_saison}/goalies_df.csv")
