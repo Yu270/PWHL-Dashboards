@@ -302,3 +302,27 @@ with st.container(border=True):
         autres()
     else:
         st.info("Cliquez sur le bouton pour récupérer les données.")
+
+
+@st.fragment
+def infos():
+    """
+    """
+    st.toggle("Afficher",key="infos")
+    if st.session_state.get("infos",False):
+        players = pd.concat((skaters[["player_name","player_image","team_id","position","birthyear","height_cm"]],goalies[["player_name","player_image","team_id","position","birthyear","height_cm"]]))
+        players["age"] = int(saison[:4])-players["birthyear"]
+        st.subheader("Âge")
+        st.toggle("Ordre croissant",value=True,key="age")
+        show_visuals(players,"age","Âge",st.session_state.get("age",True),0)
+        
+        st.subheader("Taille")
+        st.toggle("Ordre croissant",key="taille")
+        show_visuals(players,"height_cm","Taille (cm)",st.session_state.get("taille",False),2)
+
+with st.container(border=True):
+    st.header("Informations sur les joueuses")
+    if go:
+        infos()
+    else:
+        st.info("Cliquez sur le bouton pour récupérer les données.")

@@ -20,8 +20,8 @@ def get_seasons() -> pd.DataFrame:
     Sortie
         données des saisons
     """
-    if os.path.exists("./cache/references/all_seasons.csv"):
-        return pd.read_csv("./cache/references/all_seasons.csv",index_col=0).sort_values("start_date",ascending=False)
+    if os.path.exists("./cache/traitees/all_seasons.csv"):
+        return pd.read_csv("./cache/traitees/all_seasons.csv",index_col=0).sort_values("start_date",ascending=False)
     return process_seasons().sort_values("start_date",ascending=False)
 
 
