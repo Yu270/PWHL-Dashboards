@@ -94,9 +94,9 @@ def show_penalty_types(base_df: pd.DataFrame):
         if equipe!="Toutes":
             st.session_state.team = st.selectbox("Équipe",options=[equipe],placeholder="Choisissez une équipe")
         else:
-            st.session_state.team = st.selectbox("Équipe",options=teams.name.to_list(),placeholder="Choisissez une équipe")
+            st.session_state.team = st.selectbox("Équipe",options=teams.sort_values("name").name.to_list(),placeholder="Choisissez une équipe")
         team_id = teams[teams.name==st.session_state.team].index.to_list()[0]
-        st.session_state.player = st.selectbox("Joueuse",options=skaters[skaters.team_id==team_id].player_name.to_list(),placeholder="Choisissez une joueuse")
+        st.session_state.player = st.selectbox("Joueuse",options=skaters[skaters.team_id==team_id].sort_values("player_name").player_name.to_list(),placeholder="Choisissez une joueuse")
         id_joueuse = skaters[skaters.player_name==st.session_state.player].index.to_list()[0]
     new_df = base_df[base_df.player_id==id_joueuse].copy()
     if new_df.shape[0]>0:

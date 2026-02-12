@@ -3,7 +3,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from datetime import date
 from streamlit_product_card import product_card
-from data import get_skaters_all_time_df, get_goalies_all_time_df
+from data import get_skaters_all_time_df, get_goalies_all_time_df, get_penalties_all_time_df
 
 st.set_page_config(page_title="Tous les temps",page_icon="🏆")
 
@@ -74,44 +74,44 @@ def show_visuals(base_df: pd.DataFrame, column: str, name: str, ascending: bool,
                 else:
                     product_card(f"{new_df.loc[i,"player_name"]}",description=f"({new_df.loc[i,"position"]})",price=round(new_df.loc[i,column],rounding),product_image=new_df.loc[i,"player_image"],picture_position="left",enable_animation=False,key=str(i+1)+"_"+column+"_"+str(base_df.shape[0]))
 
-# if not ("player" in st.session_state):
-#     st.session_state.player = None
+if not ("player" in st.session_state):
+    st.session_state.player = None
 
-# @st.fragment
-# def show_penalty_types(base_df: pd.DataFrame):
-#     """
-#     Fonction qui affiche la distribution des types de pénalité pour une joueuse + comparaison avec le reste de son équipe. 
+@st.fragment
+def show_penalty_types(base_df: pd.DataFrame):
+    """
+    Fonction qui affiche la distribution des types de pénalité pour une joueuse + comparaison avec le reste de son équipe. 
     
-#     Entrées
-#         base_df: données à utiliser
-#     """
-#     with st.container(horizontal=True):
-#         st.session_state.player = st.selectbox("Joueuse",options=skaters.player_name.to_list(),placeholder="Choisissez une joueuse")
-#         id_joueuse = skaters[skaters.player_name==st.session_state.player].index.to_list()[0]
-#     new_df = base_df[base_df.player_id==id_joueuse].copy()
-#     if new_df.shape[0]>0:
-#         new_df["Count_player"] = 1
-#         agg_player = new_df[["penalty_description","Count_player"]].groupby("penalty_description").sum().reset_index()
-#         agg_player.sort_values("Count_player",inplace=True)
-#         fig1, ax1 = plt.subplots()
-#         ax1.barh(agg_player.penalty_description.to_list()[-10:],agg_player.Count_player.to_list()[-10:])
-#         ax1.set_title(f"Pénalités de {st.session_state.player}")
-#         ax1.set_xlabel("Fréquence")
-#         st.pyplot(fig1)
-#     else:
-#         st.error("Il n'y a aucune donnée de pénalités pour cette joueuse.")
-#     new_df2 = base_df[base_df.player_id!=id_joueuse].copy()
-#     if new_df2.shape[0]>0:
-#         new_df2["Count_players"] = 1
-#         agg_players = new_df2[["penalty_description","Count_players"]].groupby("penalty_description").sum().reset_index()
-#         agg_players.sort_values("Count_players",inplace=True)
-#         fig2, ax2 = plt.subplots()
-#         ax2.barh(agg_players.penalty_description.to_list()[-10:],agg_players.Count_players.to_list()[-10:])
-#         ax2.set_title(f"Pénalités des autres joueuses de {st.session_state.team}")
-#         ax2.set_xlabel("Fréquence")
-#         st.pyplot(fig2)
-#     else:
-#         st.error("Il n'y a aucune donnée de pénalités pour les autres joueuses.")
+    Entrées
+        base_df: données à utiliser
+    """
+    with st.container(horizontal=True):
+        st.session_state.player = st.selectbox("Joueuse",options=skaters.sort_values("player_name").player_name.to_list(),placeholder="Choisissez une joueuse")
+        id_joueuse = skaters[skaters.player_name==st.session_state.player].index.to_list()[0]
+    new_df = base_df[base_df.player_id==id_joueuse].copy()
+    if new_df.shape[0]>0:
+        new_df["Count_player"] = 1
+        agg_player = new_df[["penalty_description","Count_player"]].groupby("penalty_description").sum().reset_index()
+        agg_player.sort_values("Count_player",inplace=True)
+        fig1, ax1 = plt.subplots()
+        ax1.barh(agg_player.penalty_description.to_list()[-10:],agg_player.Count_player.to_list()[-10:])
+        ax1.set_title(f"Pénalités de {st.session_state.player}")
+        ax1.set_xlabel("Fréquence")
+        st.pyplot(fig1)
+    else:
+        st.error("Il n'y a aucune donnée de pénalités pour cette joueuse.")
+    new_df2 = base_df[base_df.player_id!=id_joueuse].copy()
+    if new_df2.shape[0]>0:
+        new_df2["Count_players"] = 1
+        agg_players = new_df2[["penalty_description","Count_players"]].groupby("penalty_description").sum().reset_index()
+        agg_players.sort_values("Count_players",inplace=True)
+        fig2, ax2 = plt.subplots()
+        ax2.barh(agg_players.penalty_description.to_list()[-10:],agg_players.Count_players.to_list()[-10:])
+        ax2.set_title(f"Pénalités des autres joueuses")
+        ax2.set_xlabel("Fréquence")
+        st.pyplot(fig2)
+    else:
+        st.error("Il n'y a aucune donnée de pénalités pour les autres joueuses.")
 
 
 with st.sidebar:
@@ -120,7 +120,7 @@ with st.sidebar:
         with st.spinner("Récupération en cours..."):
             skaters = get_skaters_all_time_df()
             goalies = get_goalies_all_time_df()
-            # penalties = get_penalties_all_time_df()
+            penalties = get_penalties_all_time_df()
 
 
 @st.fragment
@@ -244,25 +244,25 @@ with st.container(border=True):
         st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
-# @st.fragment
-# def penalites():
-#     """
-#     """
-#     st.toggle("Afficher",key="penalites")
-#     if st.session_state.get("penalites",False):
-#         st.subheader("Minutes de pénalité")
-#         show_visuals(skaters,"penalty_minutes","Minutes de pénalité",False,0,"Total")
-#         show_visuals(skaters[skaters.games_played>=10],"penalty_minutes_avg","Moyenne de minutes de pénalité",False,2,"Moyenne (au moins 10 parties jouées)")
+@st.fragment
+def penalites():
+    """
+    """
+    st.toggle("Afficher",key="penalites")
+    if st.session_state.get("penalites",False):
+        st.subheader("Minutes de pénalité")
+        show_visuals(skaters,"penalty_minutes","Minutes de pénalité",False,0,"Total")
+        show_visuals(skaters[skaters.games_played>=10],"penalty_minutes_avg","Moyenne de minutes de pénalité",False,2,"Moyenne (au moins 10 parties jouées)")
 
-#         st.subheader("Types de pénalité")
-#         show_penalty_types(penalties)
+        st.subheader("Types de pénalité")
+        show_penalty_types(penalties)
 
-# with st.container(border=True):
-#     st.header("Pénalités")
-#     if go:
-#         penalites()
-#     else:
-#         st.info("Cliquez sur le bouton pour récupérer les données.")
+with st.container(border=True):
+    st.header("Pénalités")
+    if go:
+        penalites()
+    else:
+        st.info("Cliquez sur le bouton pour récupérer les données.")
 
 
 @st.fragment
