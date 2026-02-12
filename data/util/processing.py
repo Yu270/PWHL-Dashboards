@@ -394,7 +394,7 @@ def process_penalties(id_saison: int, nom_saison: str) -> pd.DataFrame:
     df = pd.DataFrame(all_penalties)
     columns = ["event","id","game_id","player_id","player_served","time_off_formatted","minutes","penalty_class","lang_penalty_description","period_id","team_id"]
     df = df[columns].copy()
-    df.rename(columns={"id": "event_id","player_served": "player_served_id","time_off_formatted": "time_off","lang_penalty_description": "penalty_description", "period_id": "period"},inplace=True)
+    df.rename(columns={"id": "event_id", "player_served": "player_served_id", "time_off_formatted": "time_off", "lang_penalty_description": "penalty_description", "period_id": "period"},inplace=True)
     df["season_id"] = id_saison
     df["player_id"] = df.player_id.astype(str)+"-"+df.team_id.astype(str)
     df["player_served_id"] = df.player_served_id.astype(str)+"-"+df.team_id.astype(str)
@@ -527,7 +527,7 @@ def process_goalies_all_time() -> pd.DataFrame:
     goalies.reset_index(drop=True,inplace=True)
 
     columns_id = ["id","first_name","last_name","player_name","height","weight","catches","position","birthdate","hometown","birthtown","birthprov","birthcntry","player_image","height_cm"]
-    columns_sum = ["id","games_played", "ice_time", "saves", "shots_against","goals_against", "shutouts", "wins", "losses", "shootout_goals_against","shootout_saves", "shootout_attempts", "goals", "assists", "points","penalty_minutes"]
+    columns_sum = ["id","games_played","ice_time","saves","shots_against","goals_against","shutouts","wins","losses","shootout_goals_against","shootout_saves","shootout_attempts","goals","assists","points","penalty_minutes"]
     goalies_list = goalies[columns_id].drop_duplicates("id")
     goalies_list.set_index("id",inplace=True)
     goalies_agg = goalies[columns_sum].groupby("id").sum()
@@ -544,3 +544,35 @@ def process_goalies_all_time() -> pd.DataFrame:
     goalies2.rename_axis(index={"id": "player_id"},inplace=True)
     goalies2.to_csv("./cache/traitees/goalies_df.csv")
     return goalies2
+
+
+def process_penalties_all_time() -> pd.DataFrame:
+    """
+    Fonction qui traite les données des pénalités (toutes les saisons).  
+    Enregistre les données dans la cache en plus de les retourner. 
+    
+    Sortie
+        données traitées des pénalités (toutes les saisons)
+    """
+    if os.path.exists("./cache/traitees/all_seasons.csv"):
+        seasons = pd.read_csv("./cache/traitees/all_seasons.csv",index_col=0)
+    else:
+        seasons = process_seasons()
+    penalties = pd.DataFrame()
+    for id_saison in seasons[seasons.career==1].index:
+        if os.path.exists(f"./cache/traitees/{seasons.loc[id_saison,"season_name"]}/penalties_df.csv"):
+            temp = pd.read_csv(f"./cache/traitees/{seasons.loc[id_saison,"season_name"]}/penalties_df.csv")
+        else:
+            temp = process_penalties(id_saison,seasons.loc[id_saison,"season_name"])
+        temp["id"] = None
+        for i in temp.index:
+            delim = temp.loc[i,"player_id"].find("-")
+            temp.loc[i,"id"] = int(temp.loc[i,"player_id"][:delim])
+        penalties = pd.concat((penalties,temp))
+    penalties.reset_index(drop=True,inplace=True)
+
+    columns = ["id","season_id","game_id","event_id","event","time_off","minutes","penalty_class","penalty_description","period"]
+    penalties2 = penalties[columns].copy()
+    penalties2.rename(columns={"id": "player_id"},inplace=True)
+    penalties2.to_csv("./cache/traitees/penalties_df.csv",index=False)
+    return penalties2

@@ -9,4 +9,5 @@ from .processing import (
     process_standings_advanced,
     process_skaters_all_time,
     process_goalies_all_time,
+    process_penalties_all_time,
 )

@@ -12,6 +12,7 @@ from .util import (
     process_standings_advanced,
     process_skaters_all_time,
     process_goalies_all_time,
+    process_penalties_all_time,
 )
 
 
@@ -161,3 +162,15 @@ def get_goalies_all_time_df() -> pd.DataFrame:
     if os.path.exists("./cache/traitees/goalies_df.csv"):
         return pd.read_csv("./cache/traitees/goalies_df.csv",index_col=0).sort_index()
     return process_goalies_all_time().sort_index()
+
+
+def get_penalties_all_time_df() -> pd.DataFrame:
+    """
+    Fonction qui retourne les données des pénalités (toutes les saisons). 
+    
+    Sortie
+        données des pénalités (toutes les saisons)
+    """
+    if os.path.exists("./cache/traitees/penalties_df.csv"):
+        return pd.read_csv("./cache/traitees/penalties_df.csv").sort_values(["season_id","game_id","event_id"]).reset_index(drop=True)
+    return process_penalties_all_time().sort_values(["season_id","game_id","event_id"]).reset_index(drop=True)
