@@ -7,4 +7,6 @@ from .processing import (
     process_goalies,
     process_penalties,
     process_standings_advanced,
+    process_skaters_all_time,
+    process_goalies_all_time,
 )

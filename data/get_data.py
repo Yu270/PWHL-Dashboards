@@ -10,6 +10,8 @@ from .util import (
     process_goalies,
     process_penalties,
     process_standings_advanced,
+    process_skaters_all_time,
+    process_goalies_all_time,
 )
 
 
@@ -135,3 +137,27 @@ def get_standings_advanced_df(id_saison: int, nom_saison: str) -> pd.DataFrame:
     if os.path.exists(f"./cache/traitees/{nom_saison}/standings_advanced_df.csv"):
         return pd.read_csv(f"./cache/traitees/{nom_saison}/standings_advanced_df.csv",index_col=0).sort_index()
     return process_standings_advanced(id_saison,nom_saison).sort_index()
+
+
+def get_skaters_all_time_df() -> pd.DataFrame:
+    """
+    Fonction qui retourne les données des patineuses (toutes les saisons). 
+    
+    Sortie
+        données des patineuses (toutes les saisons)
+    """
+    if os.path.exists("./cache/traitees/skaters_df.csv"):
+        return pd.read_csv("./cache/traitees/skaters_df.csv",index_col=0).sort_index()
+    return process_skaters_all_time().sort_index()
+
+
+def get_goalies_all_time_df() -> pd.DataFrame:
+    """
+    Fonction qui retourne les données des gardiennes (toutes les saisons). 
+    
+    Sortie
+        données des gardiennes (toutes les saisons)
+    """
+    if os.path.exists("./cache/traitees/goalies_df.csv"):
+        return pd.read_csv("./cache/traitees/goalies_df.csv",index_col=0).sort_index()
+    return process_goalies_all_time().sort_index()
