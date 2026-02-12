@@ -394,7 +394,7 @@ def process_penalties(id_saison: int, nom_saison: str) -> pd.DataFrame:
     df = pd.DataFrame(all_penalties)
     columns = ["event","id","game_id","player_id","player_served","time_off_formatted","minutes","penalty_class","lang_penalty_description","period_id","team_id"]
     df = df[columns].copy()
-    df.rename(columns={"id": "event_id","player_served": "player_served_id","time_off_formatted": "time_off","lang_penalty_description": "penalty_description", "period_id": "period"},inplace=True)
+    df.rename(columns={"id": "event_id", "player_served": "player_served_id", "time_off_formatted": "time_off", "lang_penalty_description": "penalty_description", "period_id": "period"},inplace=True)
     df["season_id"] = id_saison
     df["player_id"] = df.player_id.astype(str)+"-"+df.team_id.astype(str)
     df["player_served_id"] = df.player_served_id.astype(str)+"-"+df.team_id.astype(str)
@@ -445,3 +445,134 @@ def process_standings_advanced(id_saison: int, nom_saison: str) -> pd.DataFrame:
     df.set_index("rank",inplace=True)
     df.to_csv(f"./cache/traitees/{nom_saison}/standings_advanced_df.csv")
     return df
+
+
+def process_skaters_all_time() -> pd.DataFrame:
+    """
+    Fonction qui traite les données des patineuses (toutes les saisons).  
+    Enregistre les données dans la cache en plus de les retourner. 
+    
+    Sortie
+        données traitées des patineuses (toutes les saisons)
+    """
+    if os.path.exists("./cache/traitees/all_seasons.csv"):
+        seasons = pd.read_csv("./cache/traitees/all_seasons.csv",index_col=0)
+    else:
+        seasons = process_seasons()
+    skaters = pd.DataFrame()
+    for id_saison in seasons[seasons.career==1].index:
+        if os.path.exists(f"./cache/traitees/{seasons.loc[id_saison,"season_name"]}/skaters_df.csv"):
+            temp = pd.read_csv(f"./cache/traitees/{seasons.loc[id_saison,"season_name"]}/skaters_df.csv")
+        else:
+            temp = process_skaters(id_saison,seasons.loc[id_saison,"season_name"]).reset_index()
+        temp["id"] = None
+        for i in temp.index:
+            delim = temp.loc[i,"player_id"].find("-")
+            temp.loc[i,"id"] = int(temp.loc[i,"player_id"][:delim])
+        skaters = pd.concat((skaters,temp))
+    skaters.reset_index(drop=True,inplace=True)
+
+    columns_id = ["id","first_name","last_name","player_name","height","weight","shoots","position","birthdate","hometown","birthtown","birthprov","birthcntry","player_image","height_cm"]
+    columns_sum = ["id","games_played","game_winning_goals","first_goals","empty_net_goals","overtime_goals","ice_time","goals","shots","hits","shots_blocked","assists","points","penalty_minutes","minor_penalties","major_penalties","power_play_goals","power_play_assists","power_play_points","short_handed_goals","short_handed_assists","short_handed_points","shootout_goals","shootout_attempts","faceoff_attempts","faceoff_wins"]
+    skaters_list = skaters[columns_id].drop_duplicates("id")
+    skaters_list.set_index("id",inplace=True)
+    skaters_agg = skaters[columns_sum].groupby("id").sum()
+    skaters2 = pd.merge(skaters_list,skaters_agg,how="left",left_index=True,right_index=True)
+    skaters2["ice_time_min"] = skaters2["ice_time"]/60
+    skaters2["min_for_point"] = np.where(skaters2["points"]>0,skaters2["ice_time_min"]/skaters2["points"],float("inf"))
+    skaters2["min_for_shot"] = np.where(skaters2["shots"]>0,skaters2["ice_time_min"]/skaters2["shots"],float("inf"))
+    skaters2["ice_time_avg"] = np.where(skaters2["games_played"]>0,skaters2["ice_time"]/skaters2["games_played"],0.0)
+    skaters2["ice_time_min_avg"] = skaters2["ice_time_avg"]/60
+    skaters2["goals_avg"] = np.where(skaters2["games_played"]>0,skaters2["goals"]/skaters2["games_played"],0.0)
+    skaters2["shots_avg"] = np.where(skaters2["games_played"]>0,skaters2["shots"]/skaters2["games_played"],0.0)
+    skaters2["hits_avg"] = np.where(skaters2["games_played"]>0,skaters2["hits"]/skaters2["games_played"],0.0)
+    skaters2["shots_blocked_avg"] = np.where(skaters2["games_played"]>0,skaters2["shots_blocked"]/skaters2["games_played"],0.0)
+    skaters2["assists_avg"] = np.where(skaters2["games_played"]>0,skaters2["assists"]/skaters2["games_played"],0.0)
+    skaters2["points_avg"] = np.where(skaters2["games_played"]>0,skaters2["points"]/skaters2["games_played"],0.0)
+    skaters2["penalty_minutes_avg"] = np.where(skaters2["games_played"]>0,skaters2["penalty_minutes"]/skaters2["games_played"],0.0)
+    skaters2["minor_penalties_avg"] = np.where(skaters2["games_played"]>0,skaters2["minor_penalties"]/skaters2["games_played"],0.0)
+    skaters2["goals_pct"] = np.where(skaters2["shots"]>0,100*skaters2["goals"]/skaters2["shots"],0.0)
+    skaters2["shootout_pct"] = np.where(skaters2["shootout_attempts"]>0,100*skaters2["shootout_goals"]/skaters2["shootout_attempts"],0.0)
+    skaters2["faceoff_pct"] = np.where(skaters2["faceoff_attempts"]>0,100*skaters2["faceoff_wins"]/skaters2["faceoff_attempts"],0.0)
+    skaters2["first_goals_pct"] = np.where(skaters2["games_played"]>0,100*skaters2["first_goals"]/skaters2["games_played"],0.0)
+    skaters2["birthyear"] = skaters2.birthdate.str[-4:].astype(int)
+    skaters2.rename_axis(index={"id": "player_id"},inplace=True)
+    skaters2.to_csv("./cache/traitees/skaters_df.csv")
+    return skaters2
+
+
+def process_goalies_all_time() -> pd.DataFrame:
+    """
+    Fonction qui traite les données des gardiennes (toutes les saisons).  
+    Enregistre les données dans la cache en plus de les retourner. 
+    
+    Sortie
+        données traitées des gardiennes (toutes les saisons)
+    """
+    if os.path.exists("./cache/traitees/all_seasons.csv"):
+        seasons = pd.read_csv("./cache/traitees/all_seasons.csv",index_col=0)
+    else:
+        seasons = process_seasons()
+    goalies = pd.DataFrame()
+    for id_saison in seasons[seasons.career==1].index:
+        if os.path.exists(f"./cache/traitees/{seasons.loc[id_saison,"season_name"]}/goalies_df.csv"):
+            temp = pd.read_csv(f"./cache/traitees/{seasons.loc[id_saison,"season_name"]}/goalies_df.csv")
+        else:
+            temp = process_goalies(id_saison,seasons.loc[id_saison,"season_name"]).reset_index()
+        temp["id"] = None
+        for i in temp.index:
+            delim = temp.loc[i,"player_id"].find("-")
+            temp.loc[i,"id"] = int(temp.loc[i,"player_id"][:delim])
+        goalies = pd.concat((goalies,temp))
+    goalies.reset_index(drop=True,inplace=True)
+
+    columns_id = ["id","first_name","last_name","player_name","height","weight","catches","position","birthdate","hometown","birthtown","birthprov","birthcntry","player_image","height_cm"]
+    columns_sum = ["id","games_played","ice_time","saves","shots_against","goals_against","shutouts","wins","losses","shootout_goals_against","shootout_saves","shootout_attempts","goals","assists","points","penalty_minutes"]
+    goalies_list = goalies[columns_id].drop_duplicates("id")
+    goalies_list.set_index("id",inplace=True)
+    goalies_agg = goalies[columns_sum].groupby("id").sum()
+    goalies2 = pd.merge(goalies_list,goalies_agg,how="left",left_index=True,right_index=True)
+    goalies2["ice_time_min"] = goalies2["ice_time"]/60
+    goalies2["ice_time_avg"] = np.where(goalies2["games_played"]>0,goalies2["ice_time"]/goalies2["games_played"],0.0)
+    goalies2["saves_avg"] = np.where(goalies2["games_played"]>0,goalies2["saves"]/goalies2["games_played"],0.0)
+    goalies2["shots_against_avg"] = np.where(goalies2["games_played"]>0,goalies2["shots_against"]/goalies2["games_played"],0.0)
+    goalies2["goals_against_avg"] = np.where(goalies2["games_played"]>0,goalies2["goals_against"]/goalies2["games_played"],float("inf"))
+    goalies2["saves_pct"] = np.where(goalies2["shots_against"]>0,100*goalies2["saves"]/goalies2["shots_against"],0.0)
+    goalies2["wins_pct"] = np.where(goalies2["games_played"]>0,100*goalies2["wins"]/goalies2["games_played"],0.0)
+    goalies2["shootout_pct"] = np.where(goalies2["shootout_attempts"]>0,100*goalies2["shootout_saves"]/goalies2["shootout_attempts"],0.0)
+    goalies2["birthyear"] = goalies2.birthdate.str[-4:].astype(int)
+    goalies2.rename_axis(index={"id": "player_id"},inplace=True)
+    goalies2.to_csv("./cache/traitees/goalies_df.csv")
+    return goalies2
+
+
+def process_penalties_all_time() -> pd.DataFrame:
+    """
+    Fonction qui traite les données des pénalités (toutes les saisons).  
+    Enregistre les données dans la cache en plus de les retourner. 
+    
+    Sortie
+        données traitées des pénalités (toutes les saisons)
+    """
+    if os.path.exists("./cache/traitees/all_seasons.csv"):
+        seasons = pd.read_csv("./cache/traitees/all_seasons.csv",index_col=0)
+    else:
+        seasons = process_seasons()
+    penalties = pd.DataFrame()
+    for id_saison in seasons[seasons.career==1].index:
+        if os.path.exists(f"./cache/traitees/{seasons.loc[id_saison,"season_name"]}/penalties_df.csv"):
+            temp = pd.read_csv(f"./cache/traitees/{seasons.loc[id_saison,"season_name"]}/penalties_df.csv")
+        else:
+            temp = process_penalties(id_saison,seasons.loc[id_saison,"season_name"])
+        temp["id"] = None
+        for i in temp.index:
+            delim = temp.loc[i,"player_id"].find("-")
+            temp.loc[i,"id"] = int(temp.loc[i,"player_id"][:delim])
+        penalties = pd.concat((penalties,temp))
+    penalties.reset_index(drop=True,inplace=True)
+
+    columns = ["id","season_id","game_id","event_id","event","time_off","minutes","penalty_class","penalty_description","period"]
+    penalties2 = penalties[columns].copy()
+    penalties2.rename(columns={"id": "player_id"},inplace=True)
+    penalties2.to_csv("./cache/traitees/penalties_df.csv",index=False)
+    return penalties2

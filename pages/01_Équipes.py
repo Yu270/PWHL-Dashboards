@@ -65,7 +65,7 @@ def show_penalty_types(base_df: pd.DataFrame):
     Entrées
         base_df: données à utiliser
     """
-    st.session_state.team = st.selectbox("Équipe",options=teams.name.to_list(),placeholder="Choisissez une équipe")
+    st.session_state.team = st.selectbox("Équipe",options=teams.sort_values("name").name.to_list(),placeholder="Choisissez une équipe")
     id_equipe = teams[teams.name==st.session_state.team].index.to_list()[0]
     new_df = base_df[base_df.team_id==id_equipe].copy()
     if new_df.shape[0]>0:
