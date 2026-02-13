@@ -123,6 +123,27 @@ def show_penalty_types(base_df: pd.DataFrame):
     else:
         st.error("Il n'y a aucune donnée de pénalités pour les autres joueuses.")
 
+def show_distribution(base_df: pd.DataFrame, column: str, name: str, title: str):
+    """
+    Fonction qui affiche la distribution d'une variable. 
+    
+    Entrées
+        base_df: données à utiliser
+        column: variable à utiliser
+        name: nom de la variable à afficher
+        title: titre du graphique
+    """
+    mean, median = base_df[column].mean(), base_df[column].median()
+    fig, ax = plt.subplots()
+    ax.hist(base_df[column],bins=10,align="mid",rwidth=0.8)
+    ax.axvline(mean,color="blue",label=f"Moyenne: {round(mean,2)}")
+    ax.axvline(median,color="red",label=f"Médiane: {round(median,2)}")
+    ax.set_title(title)
+    ax.set_xlabel(name)
+    ax.set_ylabel("Nombre de joueuses")
+    ax.legend()
+    st.pyplot(fig)
+
 
 seasons = get_seasons()
 
@@ -314,10 +335,12 @@ def infos():
         st.subheader("Âge")
         st.toggle("Ordre croissant",value=True,key="age")
         show_visuals(players,"age","Âge",st.session_state.get("age",True),0)
+        show_distribution(players,"age","Âge","Distribution de l'âge des joueuses")
         
         st.subheader("Taille")
         st.toggle("Ordre croissant",key="taille")
         show_visuals(players,"height_cm","Taille (cm)",st.session_state.get("taille",False),2)
+        show_distribution(players,"height_cm","Taille (cm)","Distribution de la taille des joueuses")
 
 with st.container(border=True):
     st.header("Informations sur les joueuses")
