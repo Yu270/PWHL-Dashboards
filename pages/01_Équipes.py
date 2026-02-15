@@ -326,6 +326,7 @@ def autres():
         show_visuals(standings,"first_goals_pct","% de premiers buts marqués",False,1,"Pourcentage",True)
 
         st.subheader("Différentiel de buts")
+        show_visuals(standings,"goals_diff","Différentiel de buts",False,0)
         fig, ax = plt.subplots()
         for col in goal_diff_all.columns:
             ax.plot(goal_diff_all[col],label=col)
