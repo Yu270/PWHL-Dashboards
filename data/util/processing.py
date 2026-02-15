@@ -209,7 +209,7 @@ def process_standings(id_saison: int, nom_saison: str) -> pd.DataFrame:
     df_add.rename(columns={"name": "team_name"},inplace=True)
 
     df = pd.merge(df_base,df_add,how="left",on="team_id")
-    df.sort_values(["points","reg_wins","wins","team_code"],ascending=False,inplace=True)
+    df.sort_values(["points","reg_wins","wins","goals_diff","team_code"],ascending=False,inplace=True)
     df["penalty_minutes_avg"] = np.where(df["games_played"]>0,df["penalty_minutes"]/df["games_played"],0.0)
     df["rank"] = range(1,df.shape[0]+1)
     df["season_id"] = id_saison
