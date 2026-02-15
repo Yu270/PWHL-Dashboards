@@ -196,6 +196,7 @@ def process_standings(id_saison: int, nom_saison: str) -> pd.DataFrame:
         data["goals_against"] = data["home_goals_against"]+data["visiting_goals_against"]
         data["goals_for_avg"] = data["goals_for"]/data["games_played"] if data["games_played"]>0 else 0.0
         data["goals_against_avg"] = data["goals_against"]/data["games_played"] if data["games_played"]>0 else float("inf")
+        data["goals_diff"] = data["goals_for"]-data["goals_against"]
         data["points"] = home_games.home_points.sum()+visiting_games.visiting_points.sum()
         all_teams.append(data)
     df_base = pd.DataFrame(all_teams)
