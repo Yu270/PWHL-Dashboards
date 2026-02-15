@@ -237,6 +237,13 @@ def gardiennes():
         st.subheader("Jeux blancs")
         show_visuals(goalies,"shutouts","Nombre de jeux blancs",False,0,"Total")
 
+        st.subheader("Arrêts en tirs de barrage")
+        show_visuals(goalies,"shootout_saves","Nombre d'arrêts en tirs de barrage",False,0,"Total")
+        if goalies[goalies.shootout_attempts>=5].shape[0]>0:
+            show_visuals(goalies[goalies.shootout_attempts>=5],"shootout_pct","% d'arrêts en tirs de barrage",False,1,"% d'arrêts (au moins 5 tirs de barrage reçus)",True)
+        else:
+            st.error("Il y a très peu de données de tirs de barrage.")
+
 with st.container(border=True):
     st.header("Gardiennes")
     if go:
@@ -253,9 +260,12 @@ def sup_inf_num():
     if st.session_state.get("sup_inf_num",False):
         st.subheader("Buts en supériorité numérique")
         show_visuals(skaters,"power_play_goals","Nombre de buts en supériorité numérique",False,0)
+        
+        st.subheader("Points en supériorité numérique")
+        show_visuals(skaters,"power_play_points","Nombre de points en supériorité numérique",False,0)
 
-        st.subheader("Buts en infériorité numérique")
-        show_visuals(skaters,"short_handed_goals","Nombre de buts en infériorité numérique",False,0)
+        st.subheader("Points en infériorité numérique")
+        show_visuals(skaters,"short_handed_points","Nombre de points en infériorité numérique",False,0)
 
 with st.container(border=True):
     st.header("Supériorité et infériorité numérique")
@@ -301,6 +311,13 @@ def autres():
 
         st.subheader("Mises au jeu")
         show_visuals(skaters[skaters.faceoff_attempts>=10],"faceoff_pct","% de mises au jeu gagnées",False,1,"(au moins 10 mises au jeu effectuées)",True)
+
+        st.subheader("Buts en tirs de barrage")
+        show_visuals(skaters,"shootout_goals","Nombre de buts en tirs de barrage",False,0,"Total")
+        if skaters[skaters.shootout_attempts>=5].shape[0]>0:
+            show_visuals(skaters[skaters.shootout_attempts>=5],"shootout_pct","% de buts en tirs de barrage",False,1,"% de buts (au moins 5 tirs de barrage effectués)",True)
+        else:
+            st.error("Il y a très peu de données de tirs de barrage.")
 
         st.subheader("Marque le premier but d'une partie")
         show_visuals(skaters[skaters.games_played>=10],"first_goals_pct","% de premier but d'une partie",False,1,"(au moins 10 parties jouées)",True)
