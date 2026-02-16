@@ -626,6 +626,9 @@ def process_shots(id_saison: int, nom_saison: str) -> pd.DataFrame:
     all_shots.rename(columns={"event": "event_type", "period_id": "period", "shot_type_description": "shot_type", "shot_quality_description": "shot_quality", "goal_type_name": "goal_type", "blocker_player_id": "blocker_id"},inplace=True)
     all_shots["season_id"] = id_saison
     all_shots["event_id"] = all_shots["id"].astype(str)+"-"+all_shots["game_id"].astype(str)
+    all_shots["player_id"] = all_shots["player_id"].astype(str)+"-"+all_shots["player_team_id"].astype(str)
+    all_shots["goalie_id"] = all_shots["goalie_id"].astype(str)+"-"+all_shots["goalie_team_id"].astype(str)
+    all_shots["blocker_id"] = all_shots["blocker_id"].astype(str)+"-"+all_shots["blocker_team_id"].astype(str)
     all_shots.drop(columns=["id"],inplace=True)
     all_shots.set_index("event_id",inplace=True)
     all_shots.to_csv(f"./cache/traitees/{nom_saison}/shots_df.csv")
@@ -669,6 +672,7 @@ def process_hits(id_saison: int, nom_saison: str) -> pd.DataFrame:
     hits_df["seconds"] = 60*hits_df.time.str[3:5].astype(int)+hits_df.time.str[-2:].astype(int)
     hits_df["season_id"] = id_saison
     hits_df["event_id"] = hits_df["id"].astype(str)+"-"+hits_df["game_id"].astype(str)
+    hits_df["player_id"] = hits_df["player_id"].astype(str)+"-"+hits_df["team_id"].astype(str)
     hits_df.drop(columns=["time","id"],inplace=True)
     hits_df.set_index("event_id",inplace=True)
     hits_df.to_csv(f"./cache/traitees/{nom_saison}/hits_df.csv")
