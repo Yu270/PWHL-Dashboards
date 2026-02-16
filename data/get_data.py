@@ -13,6 +13,8 @@ from .util import (
     process_skaters_all_time,
     process_goalies_all_time,
     process_penalties_all_time,
+    process_shots,
+    process_hits,
 )
 
 
@@ -174,3 +176,35 @@ def get_penalties_all_time_df() -> pd.DataFrame:
     if os.path.exists("./cache/traitees/penalties_df.csv"):
         return pd.read_csv("./cache/traitees/penalties_df.csv").sort_values(["season_id","game_id","event_id"]).reset_index(drop=True)
     return process_penalties_all_time().sort_values(["season_id","game_id","event_id"]).reset_index(drop=True)
+
+
+def get_shots_df(id_saison: int, nom_saison: str) -> pd.DataFrame:
+    """
+    Fonction qui retourne les données des tirs d'une saison. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
+    
+    Sortie
+        données des tirs
+    """
+    if os.path.exists(f"./cache/traitees/{nom_saison}/shots_df.csv"):
+        return pd.read_csv(f"./cache/traitees/{nom_saison}/shots_df.csv",index_col=0).sort_values(["game_id","event_id"])
+    return process_shots(id_saison,nom_saison).sort_values(["game_id","event_id"])
+
+
+def get_hits_df(id_saison: int, nom_saison: str) -> pd.DataFrame:
+    """
+    Fonction qui retourne les données des mises en échec d'une saison. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
+    
+    Sortie
+        données des mises en échec
+    """
+    if os.path.exists(f"./cache/traitees/{nom_saison}/hits_df.csv"):
+        return pd.read_csv(f"./cache/traitees/{nom_saison}/hits_df.csv",index_col=0).sort_values(["game_id","event_id"])
+    return process_hits(id_saison,nom_saison).sort_values(["game_id","event_id"])
