@@ -660,7 +660,7 @@ def process_shots_all_time() -> pd.DataFrame:
         shots = pd.concat((shots,temp))
     shots.reset_index(inplace=True)
 
-    columns = ["id","season_id","game_id","event_id","event_type","home","x_location","y_location","period","seconds","shot_type","shot_quality","goal_type","type","goalie_id","blocker_id"]
+    columns = ["id","player_team_id","season_id","game_id","event_id","event_type","home","x_location","y_location","period","seconds","shot_type","shot_quality","goal_type","type","goalie_id","goalie_team_id","blocker_id","blocker_team_id"]
     shots2 = shots[columns].copy()
     shots2.rename(columns={"id": "player_id"},inplace=True)
     shots2.to_csv("./cache/traitees/shots_df.csv",index=False)
