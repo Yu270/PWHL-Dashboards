@@ -633,3 +633,35 @@ def process_shots(id_saison: int, nom_saison: str) -> pd.DataFrame:
     all_shots.set_index("event_id",inplace=True)
     all_shots.to_csv(f"./cache/traitees/{nom_saison}/shots_df.csv")
     return all_shots
+
+
+def process_shots_all_time() -> pd.DataFrame:
+    """
+    Fonction qui traite les données des tirs (toutes les saisons).  
+    Enregistre les données dans la cache en plus de les retourner. 
+    
+    Sortie
+        données traitées des tirs (toutes les saisons)
+    """
+    if os.path.exists("./cache/traitees/all_seasons.csv"):
+        seasons = pd.read_csv("./cache/traitees/all_seasons.csv",index_col=0)
+    else:
+        seasons = process_seasons()
+    shots = pd.DataFrame()
+    for id_saison in seasons[seasons.career==1].index:
+        if os.path.exists(f"./cache/traitees/{seasons.loc[id_saison,"season_name"]}/shots_df.csv"):
+            temp = pd.read_csv(f"./cache/traitees/{seasons.loc[id_saison,"season_name"]}/shots_df.csv",index_col=0)
+        else:
+            temp = process_shots(id_saison,seasons.loc[id_saison,"season_name"])
+        temp["id"] = None
+        for i in temp.index:
+            delim = temp.loc[i,"player_id"].find("-")
+            temp.loc[i,"id"] = int(temp.loc[i,"player_id"][:delim])
+        shots = pd.concat((shots,temp))
+    shots.reset_index(inplace=True)
+
+    columns = ["id","season_id","game_id","event_id","event_type","home","x_location","y_location","period","seconds","shot_type","shot_quality","goal_type","type","goalie_id","blocker_id"]
+    shots2 = shots[columns].copy()
+    shots2.rename(columns={"id": "player_id"},inplace=True)
+    shots2.to_csv("./cache/traitees/shots_df.csv",index=False)
+    return shots2
