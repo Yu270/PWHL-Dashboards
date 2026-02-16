@@ -11,5 +11,4 @@ from .get_data import (
     get_goalies_all_time_df,
     get_penalties_all_time_df,
     get_shots_df,
-    get_hits_df,
 )
