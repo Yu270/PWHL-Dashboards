@@ -3,7 +3,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from datetime import date
 from streamlit_product_card import product_card
-from data import get_skaters_all_time_df, get_goalies_all_time_df, get_penalties_all_time_df
+from data import get_skaters_all_time_df, get_goalies_all_time_df, get_penalties_all_time_df, get_shots_all_time_df
 
 st.set_page_config(page_title="Tous les temps",page_icon="🏆")
 
@@ -86,7 +86,7 @@ def show_penalty_types(base_df: pd.DataFrame):
         base_df: données à utiliser
     """
     with st.container(horizontal=True):
-        st.session_state.player = st.selectbox("Joueuse",options=skaters.sort_values("player_name").player_name.to_list(),placeholder="Choisissez une joueuse")
+        st.session_state.player = st.selectbox("Joueuse",options=skaters.sort_values("player_name").player_name.to_list(),placeholder="Choisissez une joueuse",key="choix_joueuse_penalite")
         id_joueuse = skaters[skaters.player_name==st.session_state.player].index.to_list()[0]
     new_df = base_df[base_df.player_id==id_joueuse].copy()
     if new_df.shape[0]>0:
@@ -112,6 +112,42 @@ def show_penalty_types(base_df: pd.DataFrame):
         st.pyplot(fig2)
     else:
         st.error("Il n'y a aucune donnée de pénalités pour les autres joueuses.")
+
+@st.fragment
+def show_shot_types(base_df: pd.DataFrame):
+    """
+    Fonction qui affiche la distribution des types de tir pour une joueuse + comparaison avec le reste de son équipe. 
+    
+    Entrées
+        base_df: données à utiliser
+    """
+    with st.container(horizontal=True):
+        st.session_state.player = st.selectbox("Joueuse",options=skaters.sort_values("player_name").player_name.to_list(),placeholder="Choisissez une joueuse",key="choix_joueuse_tir")
+        id_joueuse = skaters[skaters.player_name==st.session_state.player].index.to_list()[0]
+    new_df = base_df[base_df.player_id==id_joueuse].copy()
+    if new_df.shape[0]>0:
+        new_df["Count_player"] = 1
+        agg_player = new_df[["shot_type","Count_player"]].groupby("shot_type").sum().reset_index()
+        agg_player.sort_values("Count_player",inplace=True)
+        fig1, ax1 = plt.subplots()
+        ax1.barh(agg_player.shot_type.to_list()[-10:],agg_player.Count_player.to_list()[-10:])
+        ax1.set_title(f"Tirs au but de {st.session_state.player}")
+        ax1.set_xlabel("Fréquence")
+        st.pyplot(fig1)
+    else:
+        st.error("Il n'y a aucune donnée de tirs au but pour cette joueuse.")
+    new_df2 = base_df[base_df.player_id!=id_joueuse].copy()
+    if new_df2.shape[0]>0:
+        new_df2["Count_players"] = 1
+        agg_players = new_df2[["shot_type","Count_players"]].groupby("shot_type").sum().reset_index()
+        agg_players.sort_values("Count_players",inplace=True)
+        fig2, ax2 = plt.subplots()
+        ax2.barh(agg_players.shot_type.to_list()[-10:],agg_players.Count_players.to_list()[-10:])
+        ax2.set_title(f"Tirs au but des autres joueuses")
+        ax2.set_xlabel("Fréquence")
+        st.pyplot(fig2)
+    else:
+        st.error("Il n'y a aucune donnée de tirs au but pour les autres joueuses.")
 
 def show_distribution(base_df: pd.DataFrame, column: str, name: str, title: str):
     """
@@ -142,6 +178,7 @@ with st.sidebar:
             skaters = get_skaters_all_time_df()
             goalies = get_goalies_all_time_df()
             penalties = get_penalties_all_time_df()
+            shots = get_shots_all_time_df()
 
 
 @st.fragment
@@ -186,6 +223,9 @@ def offensive():
 
         st.subheader("Pourcentage de buts")
         show_visuals(skaters[skaters.shots>=10],"goals_pct","% de buts",False,1,"(au moins 10 tirs au but effectués)",True)
+
+        st.subheader("Types de tir")
+        show_shot_types(shots)
 
 with st.container(border=True):
     st.header("Offensive")

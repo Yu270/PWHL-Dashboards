@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 from streamlit_product_card import product_card
-from data import get_seasons, get_teams, get_games_df, get_standings_advanced_df, get_penalties_df
+from data import get_seasons, get_teams, get_games_df, get_standings_advanced_df, get_penalties_df, get_shots_df
 
 
 st.set_page_config(page_title="Équipes",page_icon="🥅")
@@ -65,7 +65,7 @@ def show_penalty_types(base_df: pd.DataFrame):
     Entrées
         base_df: données à utiliser
     """
-    st.session_state.team = st.selectbox("Équipe",options=teams.sort_values("name").name.to_list(),placeholder="Choisissez une équipe")
+    st.session_state.team = st.selectbox("Équipe",options=teams.sort_values("name").name.to_list(),placeholder="Choisissez une équipe",key="choix_equipe_penalite")
     id_equipe = teams[teams.name==st.session_state.team].index.to_list()[0]
     new_df = base_df[base_df.team_id==id_equipe].copy()
     if new_df.shape[0]>0:
@@ -92,6 +92,41 @@ def show_penalty_types(base_df: pd.DataFrame):
     else:
         st.error("Il n'y a aucune donnée de pénalités pour les autres équipes.")
 
+@st.fragment
+def show_shot_types(base_df: pd.DataFrame):
+    """
+    Fonction qui affiche la distribution des types de tir pour une équipe + comparaison avec le reste de la ligue. 
+    
+    Entrées
+        base_df: données à utiliser
+    """
+    st.session_state.team = st.selectbox("Équipe",options=teams.sort_values("name").name.to_list(),placeholder="Choisissez une équipe",key="choix_equipe_tir")
+    id_equipe = teams[teams.name==st.session_state.team].index.to_list()[0]
+    new_df = base_df[base_df.player_team_id==id_equipe].copy()
+    if new_df.shape[0]>0:
+        new_df["Count_team"] = 1/new_df.shape[0]
+        agg_team = new_df[["shot_type","Count_team"]].groupby("shot_type").sum().reset_index()
+        agg_team.sort_values("Count_team",inplace=True)
+        fig1, ax1 = plt.subplots()
+        ax1.barh(agg_team.shot_type.to_list()[-10:],agg_team.Count_team.to_list()[-10:])
+        ax1.set_title(f"Distribution des tirs au but de {st.session_state.team}")
+        ax1.set_xlabel("Fréquence relative")
+        st.pyplot(fig1)
+    else:
+        st.error("Il n'y a aucune donnée de tirs au but pour cette équipe.")
+    new_df2 = base_df[base_df.player_team_id!=id_equipe].copy()
+    if new_df2.shape[0]>0:
+        new_df2["Count_teams"] = 1/new_df2.shape[0]
+        agg_teams = new_df2[["shot_type","Count_teams"]].groupby("shot_type").sum().reset_index()
+        agg_teams.sort_values("Count_teams",inplace=True)
+        fig2, ax2 = plt.subplots()
+        ax2.barh(agg_teams.shot_type.to_list()[-10:],agg_teams.Count_teams.to_list()[-10:])
+        ax2.set_title("Distribution des tirs au but des autres équipes")
+        ax2.set_xlabel("Fréquence relative")
+        st.pyplot(fig2)
+    else:
+        st.error("Il n'y a aucune donnée de tirs au but pour les autres équipes.")
+
 
 seasons = get_seasons()
 
@@ -108,6 +143,7 @@ with st.sidebar:
             games = get_games_df(id_saison,saison)
             standings = get_standings_advanced_df(id_saison,saison)
             penalties = get_penalties_df(id_saison,saison)
+            shots = get_shots_df(id_saison,saison)
 
 
 if go:
@@ -187,6 +223,12 @@ def offensive():
 
         st.subheader("Pourcentage de buts")
         show_visuals(standings,"goals_pct","% de buts",False,1,percent=True)
+
+        st.subheader("Types de tir")
+        if shots.shape[0]>0:
+            show_shot_types(shots)
+        else:
+            st.error("Il n'y a aucune donnée de tirs au but pour cette saison.")
 
 with st.container(border=True):
     st.header("Offensive")
