@@ -5,7 +5,7 @@ from streamlit_product_card import product_card
 from data import get_seasons, get_teams, get_games_df, get_standings_advanced_df, get_penalties_df, get_shots_df
 
 
-st.set_page_config(page_title="Équipes",page_icon="🥅")
+st.set_page_config(page_title="Équipes",page_icon="🤝")
 
 st.title("Équipes")
 
