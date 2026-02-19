@@ -42,7 +42,7 @@ def show_shot_comparison(raw_data: np.ndarray, sigma: float = 2, n_bins: int = 5
     if raw_data2.size>0:
         diff_smooth2 = gaussian_filter(raw_data2,sigma=sigma)
         max_abs2 = np.max(np.maximum(np.abs(diff_smooth),np.abs(diff_smooth2)))
-    img = mpimg.imread("./cache/nhl_half_rink.jpeg")
+    img = mpimg.imread("./images/nhl_half_rink.jpeg")
     if raw_data2.size>0:
         A, B = st.columns(2)
         with A:
@@ -100,7 +100,7 @@ def show_team_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: flo
         ctrl_col = "goals_against"
     
     temp = base_df[base_df[id_col]==id_equipe]
-    img = mpimg.imread("./cache/nhl_half_rink.jpeg")
+    img = mpimg.imread("./images/nhl_half_rink.jpeg")
     fig, ax = plt.subplots()
     ax.imshow(img,extent=[0,296,0,296])
     ax.set_xticks(np.arange(0,296,296/6))
@@ -152,7 +152,7 @@ def show_skater_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: f
         ctrl_col = "shots_blocked"
 
     temp = base_df[base_df[id_col]==id_joueuse]
-    img = mpimg.imread("./cache/nhl_half_rink.jpeg")
+    img = mpimg.imread("./images/nhl_half_rink.jpeg")
     fig, ax = plt.subplots()
     ax.imshow(img,extent=[0,296,0,296])
     ax.set_xticks(np.arange(0,296,296/6))
@@ -201,7 +201,7 @@ def show_goalie_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: f
         ctrl_col = "goals_against"
     
     temp = base_df[base_df[id_col]==id_joueuse]
-    img = mpimg.imread("./cache/nhl_half_rink.jpeg")
+    img = mpimg.imread("./images/nhl_half_rink.jpeg")
     fig, ax = plt.subplots()
     ax.imshow(img,extent=[0,296,0,296])
     ax.set_xticks(np.arange(0,296,296/6))
