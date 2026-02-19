@@ -579,6 +579,26 @@ def process_penalties_all_time() -> pd.DataFrame:
     return penalties2
 
 
+def transform_coordinates(x_coord: float, y_coord: float) -> tuple[float,float]:
+    """
+    Fonction qui transforme les coordonnées d'un tir. 
+
+    Entrées
+        x_coord: coordonnée x
+        y_coord: coordonnée y
+
+    Sorties
+        coordonnées transformées (x, y)
+    """
+    if x_coord>296.0:
+        x = y_coord
+        y = x_coord-296.0
+    else:
+        x = 296.0-y_coord
+        y = 296.0-x_coord
+    return x, y
+
+
 def process_shots(id_saison: int, nom_saison: str) -> pd.DataFrame:
     """
     Fonction qui traite les données des tirs d'une saison.  
@@ -622,8 +642,11 @@ def process_shots(id_saison: int, nom_saison: str) -> pd.DataFrame:
     blocked_shots_df = pd.DataFrame(blocked_shots)[columns2].copy()
     blocked_shots_df["type"] = "blocked"
 
-    all_shots = pd.concat((shots_df,blocked_shots_df))
+    all_shots = pd.concat((shots_df,blocked_shots_df)).reset_index(drop=True)
     all_shots.rename(columns={"event": "event_type", "period_id": "period", "shot_type_description": "shot_type", "shot_quality_description": "shot_quality", "goal_type_name": "goal_type", "blocker_player_id": "blocker_id"},inplace=True)
+    all_shots["xCoord"], all_shots["yCoord"] = None, None
+    for i in all_shots.index:
+        all_shots.loc[i,"xCoord"], all_shots.loc[i,"yCoord"] = transform_coordinates(all_shots.loc[i,"x_location"],all_shots.loc[i,"y_location"])
     all_shots["season_id"] = id_saison
     all_shots["event_id"] = all_shots["id"].astype(str)+"-"+all_shots["game_id"].astype(str)
     all_shots["player_id"] = all_shots["player_id"].astype(str)+"-"+all_shots["player_team_id"].astype(str)
@@ -654,14 +677,26 @@ def process_shots_all_time() -> pd.DataFrame:
         else:
             temp = process_shots(id_saison,seasons.loc[id_saison,"season_name"])
         temp["id"] = None
+        temp["id2"] = None
+        temp["id3"] = None
         for i in temp.index:
             delim = temp.loc[i,"player_id"].find("-")
             temp.loc[i,"id"] = int(temp.loc[i,"player_id"][:delim])
+            delim2 = temp.loc[i,"goalie_id"].find("-")
+            if temp.loc[i,"goalie_id"][:delim2]!="nan" and delim2>0:
+                temp.loc[i,"id2"] = int(temp.loc[i,"goalie_id"][:delim2])
+            else:
+                temp.loc[i,"id2"] = None
+            delim3 = temp.loc[i,"blocker_id"].find("-")
+            if temp.loc[i,"blocker_id"][:delim3]!="nan" and delim3>0:
+                temp.loc[i,"id3"] = int(temp.loc[i,"blocker_id"][:delim3])
+            else:
+                temp.loc[i,"id3"] = None
         shots = pd.concat((shots,temp))
     shots.reset_index(inplace=True)
 
-    columns = ["id","player_team_id","season_id","game_id","event_id","event_type","home","x_location","y_location","period","seconds","shot_type","shot_quality","goal_type","type","goalie_id","goalie_team_id","blocker_id","blocker_team_id"]
+    columns = ["id","player_team_id","season_id","game_id","event_id","event_type","home","x_location","y_location","xCoord","yCoord","period","seconds","shot_type","shot_quality","goal_type","type","id2","goalie_team_id","id3","blocker_team_id"]
     shots2 = shots[columns].copy()
-    shots2.rename(columns={"id": "player_id"},inplace=True)
+    shots2.rename(columns={"id": "player_id", "id2": "goalie_id", "id3": "blocker_id"},inplace=True)
     shots2.to_csv("./cache/traitees/shots_df.csv",index=False)
     return shots2
