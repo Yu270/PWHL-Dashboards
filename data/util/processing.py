@@ -577,3 +577,126 @@ def process_penalties_all_time() -> pd.DataFrame:
     penalties2.rename(columns={"id": "player_id"},inplace=True)
     penalties2.to_csv("./cache/traitees/penalties_df.csv",index=False)
     return penalties2
+
+
+def transform_coordinates(x_coord: float, y_coord: float) -> tuple[float,float]:
+    """
+    Fonction qui transforme les coordonnées d'un tir. 
+
+    Entrées
+        x_coord: coordonnée x
+        y_coord: coordonnée y
+
+    Sorties
+        coordonnées transformées (x, y)
+    """
+    if x_coord>296.0:
+        x = y_coord
+        y = x_coord-296.0
+    else:
+        x = 296.0-y_coord
+        y = 296.0-x_coord
+    return x, y
+
+
+def process_shots(id_saison: int, nom_saison: str) -> pd.DataFrame:
+    """
+    Fonction qui traite les données des tirs d'une saison.  
+    Enregistre les données dans la cache en plus de les retourner. 
+
+    Entrées
+        id_saison: identifiant d'une saison
+        nom_saison: nom d'une saison
+    
+    Sortie
+        données traitées des tirs
+    """
+    if not os.path.exists(f"./cache/traitees/{nom_saison}"):
+        os.makedirs(f"./cache/traitees/{nom_saison}")
+    
+    if not os.path.exists(f"./cache/brutes/{nom_saison}/all_games.csv"):
+        fetch_games(id_saison,nom_saison)
+    games = pd.read_csv(f"./cache/brutes/{nom_saison}/all_games.csv",index_col=0)
+    games = games[games.final==1]
+    shots = []
+    blocked_shots = []
+    for id_partie in games.index:
+        if not os.path.exists(f"./cache/brutes/{nom_saison}/games/{id_partie}.json"):
+            fetch_game_events(id_partie,nom_saison)
+        f = open(f"./cache/brutes/{nom_saison}/games/{id_partie}.json","r")
+        events = json.load(f)
+        f.close()
+        for event in events:
+            if event.get("game_id")==None:
+                event["game_id"] = id_partie
+            if event.get("event")=="shot":
+                shots.append(event)
+            elif event.get("event")=="blocked_shot":
+                blocked_shots.append(event)
+    columns1 = ["event","id","game_id","player_id","player_team_id","goalie_id","goalie_team_id","home","x_location","y_location","time","period_id","shot_type_description","shot_quality_description","goal_type_name"]
+    shots_df = pd.DataFrame(shots)[columns1].copy()
+    shots_df["type"] = np.where(shots_df.goal_type_name.isna(),"shot","goal")
+    shots_df["seconds"] = 60*shots_df.time.str[:2].astype(int)+shots_df.time.str[-2:].astype(int)
+    shots_df.drop(columns=["time"],inplace=True)
+    columns2 = ["event","id","game_id","player_id","player_team_id","blocker_player_id","blocker_team_id","home","x_location","y_location","seconds","period_id","shot_type_description","shot_quality_description"]
+    blocked_shots_df = pd.DataFrame(blocked_shots)[columns2].copy()
+    blocked_shots_df["type"] = "blocked"
+
+    all_shots = pd.concat((shots_df,blocked_shots_df)).reset_index(drop=True)
+    all_shots.rename(columns={"event": "event_type", "period_id": "period", "shot_type_description": "shot_type", "shot_quality_description": "shot_quality", "goal_type_name": "goal_type", "blocker_player_id": "blocker_id"},inplace=True)
+    all_shots["xCoord"], all_shots["yCoord"] = None, None
+    for i in all_shots.index:
+        all_shots.loc[i,"xCoord"], all_shots.loc[i,"yCoord"] = transform_coordinates(all_shots.loc[i,"x_location"],all_shots.loc[i,"y_location"])
+    all_shots["season_id"] = id_saison
+    all_shots["event_id"] = all_shots["id"].astype(str)+"-"+all_shots["game_id"].astype(str)
+    all_shots["player_id"] = all_shots["player_id"].astype(str)+"-"+all_shots["player_team_id"].astype(str)
+    all_shots["goalie_id"] = all_shots["goalie_id"].astype(str)+"-"+all_shots["goalie_team_id"].astype(str)
+    all_shots["blocker_id"] = all_shots["blocker_id"].astype(str)+"-"+all_shots["blocker_team_id"].astype(str)
+    all_shots.drop(columns=["id"],inplace=True)
+    all_shots.set_index("event_id",inplace=True)
+    all_shots.to_csv(f"./cache/traitees/{nom_saison}/shots_df.csv")
+    return all_shots
+
+
+def process_shots_all_time() -> pd.DataFrame:
+    """
+    Fonction qui traite les données des tirs (toutes les saisons).  
+    Enregistre les données dans la cache en plus de les retourner. 
+    
+    Sortie
+        données traitées des tirs (toutes les saisons)
+    """
+    if os.path.exists("./cache/traitees/all_seasons.csv"):
+        seasons = pd.read_csv("./cache/traitees/all_seasons.csv",index_col=0)
+    else:
+        seasons = process_seasons()
+    shots = pd.DataFrame()
+    for id_saison in seasons[seasons.career==1].index:
+        if os.path.exists(f"./cache/traitees/{seasons.loc[id_saison,"season_name"]}/shots_df.csv"):
+            temp = pd.read_csv(f"./cache/traitees/{seasons.loc[id_saison,"season_name"]}/shots_df.csv",index_col=0)
+        else:
+            temp = process_shots(id_saison,seasons.loc[id_saison,"season_name"])
+        temp["id"] = None
+        temp["id2"] = None
+        temp["id3"] = None
+        for i in temp.index:
+            delim = temp.loc[i,"player_id"].find("-")
+            temp.loc[i,"id"] = int(temp.loc[i,"player_id"][:delim])
+            delim2 = temp.loc[i,"goalie_id"].find("-")
+            if temp.loc[i,"goalie_id"][:delim2]!="nan" and delim2>0:
+                temp.loc[i,"id2"] = int(temp.loc[i,"goalie_id"][:delim2])
+            else:
+                temp.loc[i,"id2"] = None
+            delim3 = temp.loc[i,"blocker_id"].find("-")
+            if temp.loc[i,"blocker_id"][:delim3]!="nan" and delim3>0:
+                temp.loc[i,"id3"] = int(temp.loc[i,"blocker_id"][:delim3])
+            else:
+                temp.loc[i,"id3"] = None
+        shots = pd.concat((shots,temp))
+    shots.reset_index(inplace=True)
+
+    columns = ["id","player_team_id","season_id","game_id","event_id","event_type","home","x_location","y_location","xCoord","yCoord","period","seconds","shot_type","shot_quality","goal_type","type","id2","goalie_team_id","id3","blocker_team_id"]
+    shots2 = shots[columns].copy()
+    shots2.rename(columns={"id": "player_id", "id2": "goalie_id", "id3": "blocker_id"},inplace=True)
+    shots2.to_csv("./cache/traitees/shots_df.csv",index=False)
+    return shots2
