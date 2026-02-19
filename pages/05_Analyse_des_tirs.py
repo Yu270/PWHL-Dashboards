@@ -13,26 +13,6 @@ st.set_page_config(page_title="Analyse des tirs",page_icon="🥅")
 st.title("Analyse des tirs")
 
 
-def show_shot_density(base_df: pd.DataFrame, density_param: float = 0.5):
-    """
-    Fonction qui affiche la répartition des tirs (densité 2D). 
-    
-    Entrées
-        base_df: données à utiliser
-        density_param: paramètre de la densité
-    """
-    img = mpimg.imread("./cache/nhl_half_rink.jpeg")
-    fig, ax = plt.subplots()
-    ax.imshow(img,extent=[0,296,0,296])
-    ax.set_xticks(np.arange(0,296,296/6))
-    ax.set_yticks(np.arange(0,296,296/6))
-    if base_df.shape[0]>=30:
-        sns.kdeplot(base_df,x="xCoord",y="yCoord",cmap="Reds",bw_adjust=density_param,ax=ax)
-    else:
-        ax.scatter(base_df.xCoord,base_df.yCoord,color="b",marker="o")
-    ax.set(xticklabels=[],xlabel=None,yticklabels=[],ylabel=None)
-    st.pyplot(fig)
-
 def get_shot_pct(base_df: pd.DataFrame, n_bins: int = 50) -> np.ndarray:
     """
     Fonction qui calcule le pourcentage de tir par emplacement. 
@@ -47,20 +27,20 @@ def get_shot_pct(base_df: pd.DataFrame, n_bins: int = 50) -> np.ndarray:
     hist = np.histogram2d(base_df.xCoord,base_df.yCoord,bins=(np.linspace(0,296,n_bins+1),np.linspace(0,296,n_bins+1)))[0]
     return hist.T / base_df.shape[0]
 
-def show_shot_comparison(raw_data: np.ndarray, density_param: float = 2, n_bins: int = 50, raw_data2: np.ndarray = np.array([])):
+def show_shot_comparison(raw_data: np.ndarray, sigma: float = 2, n_bins: int = 50, raw_data2: np.ndarray = np.array([])):
     """
     Fonction qui affiche un graphique de comparaison. 
 
     Entrées
         raw_data: données à utiliser (différence avec le reste de la ligue)
-        density_param: paramètre de la densité
+        sigma: paramètre de lissage
         n_bins: nombre de bins
         raw_data: autre ensemble de données à utiliser (différence avec le reste de la ligue)
     """
-    diff_smooth = gaussian_filter(raw_data,sigma=density_param)
+    diff_smooth = gaussian_filter(raw_data,sigma=sigma)
     max_abs = np.max(np.abs(diff_smooth))
     if raw_data2.size>0:
-        diff_smooth2 = gaussian_filter(raw_data2,sigma=density_param)
+        diff_smooth2 = gaussian_filter(raw_data2,sigma=sigma)
         max_abs2 = np.max(np.maximum(np.abs(diff_smooth),np.abs(diff_smooth2)))
     img = mpimg.imread("./cache/nhl_half_rink.jpeg")
     if raw_data2.size>0:
@@ -89,6 +69,165 @@ def show_shot_comparison(raw_data: np.ndarray, density_param: float = 2, n_bins:
         ax.contour(np.linspace(0,296,n_bins),np.linspace(0,296,n_bins),diff_smooth,cmap="seismic",vmin=-max_abs,vmax=max_abs)
         ax.set(xticklabels=[],xlabel=None,yticklabels=[],ylabel=None)
         st.pyplot(fig)
+
+@st.fragment
+def show_team_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: float = 0.5, sigma: float = 2):
+    """
+    Fonction qui affiche la répartition des tirs d'une équipe (densité 2D).  
+    S'il y a assez de données, affiche aussi une comparaison avec le reste de la ligue. 
+    
+    Entrées
+        base_df: données à utiliser
+        shot_type: type de tir à afficher
+        bw_adjust: paramètre de la densité
+        sigma: paramètre de lissage
+    """
+    assert shot_type in ["shot","goal","blocked","save","goal_against"], "Le type de tir doit être 'shot', 'goal', 'blocked', 'save' ou 'goal_against'"
+    if shot_type=="shot":
+        id_col = "player_team_id"
+        ctrl_col = "shots"
+    elif shot_type=="goal":
+        id_col = "player_team_id"
+        ctrl_col = "goals_for"
+    elif shot_type=="blocked":
+        id_col = "blocker_team_id"
+        ctrl_col = "shots_blocked"
+    elif shot_type=="save":
+        id_col = "goalie_team_id"
+        ctrl_col = "saves"
+    else:
+        id_col = "goalie_team_id"
+        ctrl_col = "goals_against"
+    
+    temp = base_df[base_df[id_col]==id_equipe]
+    img = mpimg.imread("./cache/nhl_half_rink.jpeg")
+    fig, ax = plt.subplots()
+    ax.imshow(img,extent=[0,296,0,296])
+    ax.set_xticks(np.arange(0,296,296/6))
+    ax.set_yticks(np.arange(0,296,296/6))
+    if temp.shape[0]>=30:
+        sns.kdeplot(temp,x="xCoord",y="yCoord",cmap="Reds",bw_adjust=bw_adjust,ax=ax)
+    else:
+        ax.scatter(temp.xCoord,temp.yCoord,color="b",marker="o")
+    ax.set(xticklabels=[],xlabel=None,yticklabels=[],ylabel=None)
+    st.pyplot(fig)
+
+    if temp.shape[0]>=30:
+        st.text("Comparaison avec le reste de la ligue")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.selectbox("Équipe 1",options=[equipe],placeholder="Choisissez une équipe",key=f"team1_{shot_type}")
+        with col2:
+            st.selectbox("Équipe 2",options=[None]+teams[teams[ctrl_col]>=30].sort_values("name").name.to_list(),placeholder="Choisissez une équipe",key=f"team2_{shot_type}")
+        shot_pct = get_shot_pct(temp)
+        if st.session_state.get(f"team2_{shot_type}",None)!=None:
+            team_id = teams[teams.name==st.session_state.get(f"team2_{shot_type}",None)].index.to_list()[0]
+            temp2 = base_df[base_df[id_col]==team_id]
+            shot_pct2 = get_shot_pct(temp2)
+            show_shot_comparison(shot_pct-league_pct,sigma,raw_data2=shot_pct2-league_pct)
+        else:
+            show_shot_comparison(shot_pct-league_pct,sigma)
+
+@st.fragment
+def show_skater_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: float = 0.5, sigma: float = 2):
+    """
+    Fonction qui affiche la répartition des tirs d'une patineuse (densité 2D).  
+    S'il y a assez de données, affiche aussi une comparaison avec le reste de la ligue. 
+    
+    Entrées
+        base_df: données à utiliser
+        shot_type: type de tir à afficher
+        bw_adjust: paramètre de la densité
+        sigma: paramètre de lissage
+    """
+    assert shot_type in ["shot","goal","blocked"], "Le type de tir doit être 'shot', 'goal' ou 'blocked'"
+    if shot_type=="shot":
+        id_col = "player_id"
+        ctrl_col = "shots"
+    elif shot_type=="goal":
+        id_col = "player_id"
+        ctrl_col = "goals"
+    else:
+        id_col = "blocker_id"
+        ctrl_col = "shots_blocked"
+
+    temp = base_df[base_df[id_col]==id_joueuse]
+    img = mpimg.imread("./cache/nhl_half_rink.jpeg")
+    fig, ax = plt.subplots()
+    ax.imshow(img,extent=[0,296,0,296])
+    ax.set_xticks(np.arange(0,296,296/6))
+    ax.set_yticks(np.arange(0,296,296/6))
+    if temp.shape[0]>=30:
+        sns.kdeplot(temp,x="xCoord",y="yCoord",cmap="Reds",bw_adjust=bw_adjust,ax=ax)
+    else:
+        ax.scatter(temp.xCoord,temp.yCoord,color="b",marker="o")
+    ax.set(xticklabels=[],xlabel=None,yticklabels=[],ylabel=None)
+    st.pyplot(fig)
+
+    if temp.shape[0]>=30:
+        st.text("Comparaison avec le reste de la ligue")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.selectbox("Joueuse 1",options=[joueuse],placeholder="Choisissez une joueuse",key=f"player1_{shot_type}")
+        with col2:
+            st.selectbox("Joueuse 2",options=[None]+skaters[skaters[ctrl_col]>=30].sort_values("player_name").player_name.to_list(),placeholder="Choisissez une joueuse",key=f"player2_{shot_type}")
+        shot_pct = get_shot_pct(temp)
+        if st.session_state.get(f"player2_{shot_type}",None)!=None:
+            player_id = skaters[skaters.player_name==st.session_state.get(f"player2_{shot_type}",None)].index.to_list()[0]
+            temp2 = base_df[base_df[id_col]==player_id]
+            shot_pct2 = get_shot_pct(temp2)
+            show_shot_comparison(shot_pct-league_pct,sigma,raw_data2=shot_pct2-league_pct)
+        else:
+            show_shot_comparison(shot_pct-league_pct,sigma)
+
+@st.fragment
+def show_goalie_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: float = 0.5, sigma: float = 2):
+    """
+    Fonction qui affiche la répartition des tirs sur une gardienne (densité 2D).  
+    S'il y a assez de données, affiche aussi une comparaison avec le reste de la ligue. 
+    
+    Entrées
+        base_df: données à utiliser
+        shot_type: type de tir à afficher
+        bw_adjust: paramètre de la densité
+        sigma: paramètre de lissage
+    """
+    assert shot_type in ["save","goal_against"], "Le type de tir doit être 'save' ou 'goal_against'"
+    if shot_type=="save":
+        id_col = "goalie_id"
+        ctrl_col = "saves"
+    else:
+        id_col = "goalie_id"
+        ctrl_col = "goals_against"
+    
+    temp = base_df[base_df[id_col]==id_joueuse]
+    img = mpimg.imread("./cache/nhl_half_rink.jpeg")
+    fig, ax = plt.subplots()
+    ax.imshow(img,extent=[0,296,0,296])
+    ax.set_xticks(np.arange(0,296,296/6))
+    ax.set_yticks(np.arange(0,296,296/6))
+    if temp.shape[0]>=30:
+        sns.kdeplot(temp,x="xCoord",y="yCoord",cmap="Reds",bw_adjust=bw_adjust,ax=ax)
+    else:
+        ax.scatter(temp.xCoord,temp.yCoord,color="b",marker="o")
+    ax.set(xticklabels=[],xlabel=None,yticklabels=[],ylabel=None)
+    st.pyplot(fig)
+
+    if temp.shape[0]>=30:
+        st.text("Comparaison avec le reste de la ligue")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.selectbox("Joueuse 1",options=[joueuse],placeholder="Choisissez une joueuse",key=f"player1_{shot_type}")
+        with col2:
+            st.selectbox("Joueuse 2",options=[None]+goalies[goalies[ctrl_col]>=30].sort_values("player_name").player_name.to_list(),placeholder="Choisissez une joueuse",key=f"player2_{shot_type}")
+        shot_pct = get_shot_pct(temp)
+        if st.session_state.get(f"player2_{shot_type}",None)!=None:
+            player_id = goalies[goalies.player_name==st.session_state.get(f"player2_{shot_type}",None)].index.to_list()[0]
+            temp2 = base_df[base_df[id_col]==player_id]
+            shot_pct2 = get_shot_pct(temp2)
+            show_shot_comparison(shot_pct-league_pct,sigma,raw_data2=shot_pct2-league_pct)
+        else:
+            show_shot_comparison(shot_pct-league_pct,sigma)
 
 
 seasons = get_seasons()
@@ -158,62 +297,20 @@ def offensive():
         st.subheader("Tirs au but")
         if joueuse==None:
             st.text(f"Répartition des tirs au but de {equipe}")
-            temp = shots[(shots["type"]=="shot")*(shots.player_team_id==id_equipe)]
-            show_shot_density(temp)
-            if temp.shape[0]>=30:
-                st.text("Comparaison avec le reste de la ligue")
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.selectbox("Équipe 1",options=[equipe],placeholder="Choisissez une équipe",key="team1_shots")
-                with col2:
-                    st.selectbox("Équipe 2",options=[None]+teams[teams.shots>=30].sort_values("name").name.to_list(),placeholder="Choisissez une équipe",key="team2_shots")
-                shot_pct = get_shot_pct(temp)
-                if st.session_state.get("team2_shots",None)!=None:
-                    team_id = teams[teams.name==st.session_state.get("team2_shots",None)].index.to_list()[0]
-                    temp2 = shots[(shots["type"]=="shot")*(shots.player_team_id==team_id)]
-                    shot_pct2 = get_shot_pct(temp2)
-                    show_shot_comparison(shot_pct-league_pct,raw_data2=shot_pct2-league_pct)
-                else:
-                    show_shot_comparison(shot_pct-league_pct)
+            show_team_shot_density(shots[shots["type"]=="shot"],"shot")
         elif pos_joueuse!="G":
             st.text(f"Répartition des tirs au but de {joueuse}")
-            temp = shots[(shots["type"]=="shot")*(shots.player_id==id_joueuse)]
-            show_shot_density(temp)
-            if temp.shape[0]>=30:
-                st.text("Comparaison avec le reste de la ligue")
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.selectbox("Joueuse 1",options=[joueuse],placeholder="Choisissez une joueuse",key="player1_shots")
-                with col2:
-                    st.selectbox("Joueuse 2",options=[None]+skaters[skaters.shots>=30].sort_values("player_name").player_name.to_list(),placeholder="Choisissez une joueuse",key="player2_shots")
-                shot_pct = get_shot_pct(temp)
-                if st.session_state.get("player2_shots",None)!=None:
-                    player_id = skaters[skaters.player_name==st.session_state.get("player2_shots",None)].index.to_list()[0]
-                    temp2 = shots[(shots["type"]=="shot")*(shots.player_id==player_id)]
-                    shot_pct2 = get_shot_pct(temp2)
-                    show_shot_comparison(shot_pct-league_pct,raw_data2=shot_pct2-league_pct)
-                else:
-                    show_shot_comparison(shot_pct-league_pct)
+            show_skater_shot_density(shots[shots["type"]=="shot"],"shot")
         else:
             st.error("Il n'y a aucune donnée de tirs au but pour cette joueuse.")
         
         st.subheader("Buts")
         if joueuse==None:
             st.text(f"Répartition des buts de {equipe}")
-            temp = shots[(shots["type"]=="goal")*(shots.player_team_id==id_equipe)]
-            show_shot_density(temp)
-            if temp.shape[0]>=30:
-                shot_pct = get_shot_pct(temp)
-                st.text("Comparaison avec le reste de la ligue")
-                show_shot_comparison(shot_pct-league_pct)
+            show_team_shot_density(shots[shots["type"]=="goal"],"goal")
         elif pos_joueuse!="G":
             st.text(f"Répartition des buts de {joueuse}")
-            temp = shots[(shots["type"]=="goal")*(shots.player_id==id_joueuse)]
-            show_shot_density(temp)
-            if temp.shape[0]>=30:
-                shot_pct = get_shot_pct(temp)
-                st.text("Comparaison avec le reste de la ligue")
-                show_shot_comparison(shot_pct-league_pct)
+            show_skater_shot_density(shots[shots["type"]=="goal"],"goal")
         else:
             st.error("Il n'y a aucune donnée de buts pour cette joueuse.")
 
@@ -234,20 +331,10 @@ def defensive():
         st.subheader("Tirs bloqués")
         if joueuse==None:
             st.text(f"Répartition des tirs bloqués de {equipe}")
-            temp = shots[(shots["type"]=="blocked")*(shots.blocker_team_id==id_equipe)]
-            show_shot_density(temp)
-            if temp.shape[0]>=30:
-                shot_pct = get_shot_pct(temp)
-                st.text("Comparaison avec le reste de la ligue")
-                show_shot_comparison(shot_pct-league_pct)
+            show_team_shot_density(shots[shots["type"]=="blocked"],"blocked")
         elif pos_joueuse!="G":
             st.text(f"Répartition des tirs bloqués de {joueuse}")
-            temp = shots[(shots["type"]=="blocked")*(shots.blocker_id==id_joueuse)]
-            show_shot_density(temp)
-            if temp.shape[0]>=30:
-                shot_pct = get_shot_pct(temp)
-                st.text("Comparaison avec le reste de la ligue")
-                show_shot_comparison(shot_pct-league_pct)
+            show_skater_shot_density(shots[shots["type"]=="blocked"],"blocked")
         else:
             st.error("Il n'y a aucune donnée de tirs bloqués pour cette joueuse.")
 
@@ -268,40 +355,20 @@ def gardienne():
         st.subheader("Tirs arrêtés")
         if joueuse==None:
             st.text(f"Répartition des tirs arrêtés de {equipe}")
-            temp = shots[(shots["type"]=="shot")*(shots.goalie_team_id==id_equipe)]
-            show_shot_density(temp)
-            if temp.shape[0]>=30:
-                shot_pct = get_shot_pct(temp)
-                st.text("Comparaison avec le reste de la ligue")
-                show_shot_comparison(shot_pct-league_pct)
+            show_team_shot_density(shots[shots["type"]=="shot"],"save")
         elif pos_joueuse=="G":
             st.text(f"Répartition des tirs arrêtés de {joueuse}")
-            temp = shots[(shots["type"]=="shot")*(shots.goalie_id==id_joueuse)]
-            show_shot_density(temp)
-            if temp.shape[0]>=30:
-                shot_pct = get_shot_pct(temp)
-                st.text("Comparaison avec le reste de la ligue")
-                show_shot_comparison(shot_pct-league_pct)
+            show_goalie_shot_density(shots[shots["type"]=="shot"],"save")
         else:
             st.error("Il n'y a aucune donnée de tirs arrêtés pour cette joueuse.")
         
         st.subheader("Buts accordés")
         if joueuse==None:
             st.text(f"Répartition des buts accordés de {equipe}")
-            temp = shots[(shots["type"]=="goal")*(shots.goalie_team_id==id_equipe)]
-            show_shot_density(temp)
-            if temp.shape[0]>=30:
-                shot_pct = get_shot_pct(temp)
-                st.text("Comparaison avec le reste de la ligue")
-                show_shot_comparison(shot_pct-league_pct)
+            show_team_shot_density(shots[shots["type"]=="goal"],"goal_against")
         elif pos_joueuse=="G":
             st.text(f"Répartition des buts accordés de {joueuse}")
-            temp = shots[(shots["type"]=="goal")*(shots.goalie_id==id_joueuse)]
-            show_shot_density(temp)
-            if temp.shape[0]>=30:
-                shot_pct = get_shot_pct(temp)
-                st.text("Comparaison avec le reste de la ligue")
-                show_shot_comparison(shot_pct-league_pct)
+            show_goalie_shot_density(shots[shots["type"]=="goal"],"goal_against")
         else:
             st.error("Il n'y a aucune donnée de buts accordés pour cette joueuse.")
 
