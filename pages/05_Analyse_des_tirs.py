@@ -13,65 +13,63 @@ st.set_page_config(page_title="Analyse des tirs",page_icon="🥅")
 st.title("Analyse des tirs")
 
 
-def get_shot_pct(base_df: pd.DataFrame, n_bins: int = 50) -> np.ndarray:
+def get_shot_distribution(base_df: pd.DataFrame, n_bins: int = 30) -> np.ndarray:
     """
-    Fonction qui calcule le pourcentage de tir par emplacement. 
+    Fonction qui calcule le nombre de tirs par emplacement. 
 
     Entrées
         base_df: données à utiliser
         n_bins: nombre de bins
 
     Sortie
-        pourcentage de tir par emplacement
+        nombre de tirs par emplacement
     """
     hist = np.histogram2d(base_df.xCoord,base_df.yCoord,bins=(np.linspace(0,296,n_bins+1),np.linspace(0,296,n_bins+1)))[0]
-    return hist.T / base_df.shape[0]
+    return hist.T
 
-def show_shot_comparison(raw_data: np.ndarray, sigma: float = 2, n_bins: int = 50, raw_data2: np.ndarray = np.array([])):
+def show_shot_comparison(raw_data: np.ndarray, base_data: np.ndarray, sigma: float = 1.5, n_bins: int = 30, raw_data2: np.ndarray = np.array([])):
     """
     Fonction qui affiche un graphique de comparaison. 
 
     Entrées
-        raw_data: données à utiliser (différence avec le reste de la ligue)
+        raw_data: données à utiliser
+        base_data: données de base pour la comparaison
         sigma: paramètre de lissage
         n_bins: nombre de bins
-        raw_data: autre ensemble de données à utiliser (différence avec le reste de la ligue)
+        raw_data: autre ensemble de données à utiliser
     """
-    diff_smooth = gaussian_filter(raw_data,sigma=sigma)
+    diff = raw_data - base_data
+    diff_smooth = gaussian_filter(diff,sigma=sigma)
     max_abs = np.max(np.abs(diff_smooth))
     if raw_data2.size>0:
-        diff_smooth2 = gaussian_filter(raw_data2,sigma=sigma)
+        diff2 = raw_data2 - base_data
+        diff_smooth2 = gaussian_filter(diff2,sigma=sigma)
         max_abs2 = np.max(np.maximum(np.abs(diff_smooth),np.abs(diff_smooth2)))
     img = mpimg.imread("./images/nhl_half_rink.jpeg")
-    if raw_data2.size>0:
-        A, B = st.columns(2)
-        with A:
-            fig1, ax1 = plt.subplots()
-            ax1.imshow(img,extent=[0,296,0,296])
-            ax1.set_xticks(np.arange(0,296,296/6))
-            ax1.set_yticks(np.arange(0,296,296/6))
-            ax1.contour(np.linspace(0,296,n_bins),np.linspace(0,296,n_bins),diff_smooth,cmap="seismic",vmin=-max_abs,vmax=max_abs)
-            ax1.set(xticklabels=[],xlabel=None,yticklabels=[],ylabel=None)
-            st.pyplot(fig1)
-        with B:
-            fig2, ax2 = plt.subplots()
-            ax2.imshow(img,extent=[0,296,0,296])
-            ax2.set_xticks(np.arange(0,296,296/6))
-            ax2.set_yticks(np.arange(0,296,296/6))
+    A, B = st.columns(2)
+    with A:
+        fig1, ax1 = plt.subplots()
+        ax1.imshow(img,extent=[0,296,0,296])
+        ax1.set_xticks(np.arange(0,296,296/6))
+        ax1.set_yticks(np.arange(0,296,296/6))
+        ax1.contour(np.linspace(0,296,n_bins),np.linspace(0,296,n_bins),diff_smooth,cmap="seismic",vmin=-max_abs,vmax=max_abs)
+        ax1.set(xticklabels=[],xlabel=None,yticklabels=[],ylabel=None)
+        st.pyplot(fig1)
+    with B:
+        fig2, ax2 = plt.subplots()
+        ax2.imshow(img,extent=[0,296,0,296])
+        ax2.set_xticks(np.arange(0,296,296/6))
+        ax2.set_yticks(np.arange(0,296,296/6))
+        if raw_data2.size>0:
             ax2.contour(np.linspace(0,296,n_bins),np.linspace(0,296,n_bins),diff_smooth2,cmap="seismic",vmin=-max_abs2,vmax=max_abs2)
-            ax2.set(xticklabels=[],xlabel=None,yticklabels=[],ylabel=None)
-            st.pyplot(fig2)
-    else:
-        fig, ax = plt.subplots()
-        ax.imshow(img,extent=[0,296,0,296])
-        ax.set_xticks(np.arange(0,296,296/6))
-        ax.set_yticks(np.arange(0,296,296/6))
-        ax.contour(np.linspace(0,296,n_bins),np.linspace(0,296,n_bins),diff_smooth,cmap="seismic",vmin=-max_abs,vmax=max_abs)
-        ax.set(xticklabels=[],xlabel=None,yticklabels=[],ylabel=None)
-        st.pyplot(fig)
+        else:
+            base_smooth = gaussian_filter(base_data,sigma=sigma)
+            ax2.contour(np.linspace(0,296,n_bins),np.linspace(0,296,n_bins),base_smooth,cmap="Reds")
+        ax2.set(xticklabels=[],xlabel=None,yticklabels=[],ylabel=None)
+        st.pyplot(fig2)
 
 @st.fragment
-def show_team_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: float = 0.5, sigma: float = 2):
+def show_team_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: float = 0.5, sigma: float = 1.5):
     """
     Fonction qui affiche la répartition des tirs d'une équipe (densité 2D).  
     S'il y a assez de données, affiche aussi une comparaison avec le reste de la ligue. 
@@ -118,18 +116,19 @@ def show_team_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: flo
         with col1:
             st.selectbox("Équipe 1",options=[equipe],placeholder="Choisissez une équipe",key=f"team1_{shot_type}")
         with col2:
-            st.selectbox("Équipe 2",options=[None]+teams[teams[ctrl_col]>=30].sort_values("name").name.to_list(),placeholder="Choisissez une équipe",key=f"team2_{shot_type}")
-        shot_pct = get_shot_pct(temp)
-        if st.session_state.get(f"team2_{shot_type}",None)!=None:
-            team_id = teams[teams.name==st.session_state.get(f"team2_{shot_type}",None)].index.to_list()[0]
+            st.selectbox("Équipe 2",options=["(Reste de la ligue)"]+teams[teams[ctrl_col]>=30].sort_values("name").name.to_list(),placeholder="Choisissez une équipe",key=f"team2_{shot_type}")
+        shot_pct = get_shot_distribution(temp)/temp.shape[0]
+        league_pct = get_shot_distribution(base_df)/base_df.shape[0]
+        if st.session_state.get(f"team2_{shot_type}","(Reste de la ligue)")!="(Reste de la ligue)":
+            team_id = teams[teams.name==st.session_state.get(f"team2_{shot_type}")].index.to_list()[0]
             temp2 = base_df[base_df[id_col]==team_id]
-            shot_pct2 = get_shot_pct(temp2)
-            show_shot_comparison(shot_pct-league_pct,sigma,raw_data2=shot_pct2-league_pct)
+            shot_pct2 = get_shot_distribution(temp2)/temp2.shape[0]
+            show_shot_comparison(shot_pct,league_pct,sigma,raw_data2=shot_pct2)
         else:
-            show_shot_comparison(shot_pct-league_pct,sigma)
+            show_shot_comparison(shot_pct,league_pct,sigma)
 
 @st.fragment
-def show_skater_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: float = 0.5, sigma: float = 2):
+def show_skater_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: float = 0.5, sigma: float = 1.5):
     """
     Fonction qui affiche la répartition des tirs d'une patineuse (densité 2D).  
     S'il y a assez de données, affiche aussi une comparaison avec le reste de la ligue. 
@@ -170,18 +169,19 @@ def show_skater_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: f
         with col1:
             st.selectbox("Joueuse 1",options=[joueuse],placeholder="Choisissez une joueuse",key=f"player1_{shot_type}")
         with col2:
-            st.selectbox("Joueuse 2",options=[None]+skaters[skaters[ctrl_col]>=30].sort_values("player_name").player_name.to_list(),placeholder="Choisissez une joueuse",key=f"player2_{shot_type}")
-        shot_pct = get_shot_pct(temp)
-        if st.session_state.get(f"player2_{shot_type}",None)!=None:
-            player_id = skaters[skaters.player_name==st.session_state.get(f"player2_{shot_type}",None)].index.to_list()[0]
+            st.selectbox("Joueuse 2",options=["(Reste de la ligue)"]+skaters[skaters[ctrl_col]>=30].sort_values("player_name").player_name.to_list(),placeholder="Choisissez une joueuse",key=f"player2_{shot_type}")
+        shot_pct = get_shot_distribution(temp)/temp.shape[0]
+        league_pct = get_shot_distribution(base_df)/base_df.shape[0]
+        if st.session_state.get(f"player2_{shot_type}","(Reste de la ligue)")!="(Reste de la ligue)":
+            player_id = skaters[skaters.player_name==st.session_state.get(f"player2_{shot_type}")].index.to_list()[0]
             temp2 = base_df[base_df[id_col]==player_id]
-            shot_pct2 = get_shot_pct(temp2)
-            show_shot_comparison(shot_pct-league_pct,sigma,raw_data2=shot_pct2-league_pct)
+            shot_pct2 = get_shot_distribution(temp2)/temp2.shape[0]
+            show_shot_comparison(shot_pct,league_pct,sigma,raw_data2=shot_pct2)
         else:
-            show_shot_comparison(shot_pct-league_pct,sigma)
+            show_shot_comparison(shot_pct,league_pct,sigma)
 
 @st.fragment
-def show_goalie_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: float = 0.5, sigma: float = 2):
+def show_goalie_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: float = 0.5, sigma: float = 1.5):
     """
     Fonction qui affiche la répartition des tirs sur une gardienne (densité 2D).  
     S'il y a assez de données, affiche aussi une comparaison avec le reste de la ligue. 
@@ -219,15 +219,58 @@ def show_goalie_shot_density(base_df: pd.DataFrame, shot_type: str, bw_adjust: f
         with col1:
             st.selectbox("Joueuse 1",options=[joueuse],placeholder="Choisissez une joueuse",key=f"player1_{shot_type}")
         with col2:
-            st.selectbox("Joueuse 2",options=[None]+goalies[goalies[ctrl_col]>=30].sort_values("player_name").player_name.to_list(),placeholder="Choisissez une joueuse",key=f"player2_{shot_type}")
-        shot_pct = get_shot_pct(temp)
-        if st.session_state.get(f"player2_{shot_type}",None)!=None:
-            player_id = goalies[goalies.player_name==st.session_state.get(f"player2_{shot_type}",None)].index.to_list()[0]
+            st.selectbox("Joueuse 2",options=["(Reste de la ligue)"]+goalies[goalies[ctrl_col]>=30].sort_values("player_name").player_name.to_list(),placeholder="Choisissez une joueuse",key=f"player2_{shot_type}")
+        shot_pct = get_shot_distribution(temp)/temp.shape[0]
+        league_pct = get_shot_distribution(base_df)/base_df.shape[0]
+        if st.session_state.get(f"player2_{shot_type}","(Reste de la ligue)")!="(Reste de la ligue)":
+            player_id = goalies[goalies.player_name==st.session_state.get(f"player2_{shot_type}")].index.to_list()[0]
             temp2 = base_df[base_df[id_col]==player_id]
-            shot_pct2 = get_shot_pct(temp2)
-            show_shot_comparison(shot_pct-league_pct,sigma,raw_data2=shot_pct2-league_pct)
+            shot_pct2 = get_shot_distribution(temp2)/temp2.shape[0]
+            show_shot_comparison(shot_pct,league_pct,sigma,raw_data2=shot_pct2)
         else:
-            show_shot_comparison(shot_pct-league_pct,sigma)
+            show_shot_comparison(shot_pct,league_pct,sigma)
+
+@st.fragment
+def show_team_gr_density(team_df: pd.DataFrame, n_bins: int = 30, sigma: float = 1.5):
+    """
+    Fonction qui affiche la répartition du taux de buts d'une équipe (densité 2D).  
+    Suppose qu'il y a assez de données. 
+    
+    Entrées
+        team_df: données de l'équipe à utiliser
+        n_bins: nombre de bins
+        sigma: paramètre de lissage
+    """
+    team_goals = get_shot_distribution(team_df[team_df["type"]=="goal"])
+    team_shots = get_shot_distribution(team_df[team_df["type"]=="shot"])
+    team_gr = np.divide(team_goals,team_shots,where=team_shots>0)
+    team_gr_smooth = gaussian_filter(team_gr,sigma=sigma)
+    img = mpimg.imread("./images/nhl_half_rink.jpeg")
+    fig, ax = plt.subplots()
+    ax.imshow(img,extent=[0,296,0,296])
+    ax.set_xticks(np.arange(0,296,296/6))
+    ax.set_yticks(np.arange(0,296,296/6))
+    ax.contour(np.linspace(0,296,n_bins),np.linspace(0,296,n_bins),team_gr_smooth,cmap="Reds")
+    ax.set(xticklabels=[],xlabel=None,yticklabels=[],ylabel=None)
+    st.pyplot(fig)
+
+    st.text("Comparaison avec le reste de la ligue")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.selectbox("Équipe 1",options=[equipe],placeholder="Choisissez une équipe",key="team1_gr")
+    with col2:
+        st.selectbox("Équipe 2",options=["(Reste de la ligue)"]+teams[teams.goals_for>=30].sort_values("name").name.to_list(),placeholder="Choisissez une équipe",key="team2_gr")
+    league_goals = get_shot_distribution(shots[shots["type"]=="goal"])
+    league_shots = get_shot_distribution(shots[shots["type"]=="shot"])
+    league_gr = np.divide(league_goals,league_shots,where=league_shots>0)
+    if st.session_state.get("team2_gr","(Reste de la ligue)")!="(Reste de la ligue)":
+        team_id = teams[teams.name==st.session_state.get("team2_gr")].index.to_list()[0]
+        team_goals2 = get_shot_distribution(shots[(shots["type"]=="goal")*(shots.player_team_id==team_id)])
+        team_shots2 = get_shot_distribution(shots[(shots["type"]=="shot")*(shots.player_team_id==team_id)])
+        team_gr2 = np.divide(team_goals2,team_shots2,where=team_shots2>0)
+        show_shot_comparison(team_gr,league_gr,sigma,raw_data2=team_gr2)
+    else:
+        show_shot_comparison(team_gr,league_gr,sigma)
 
 
 seasons = get_seasons()
@@ -266,7 +309,6 @@ with st.sidebar:
                 shots = get_shots_df(id_saison,saison)
             else:
                 shots = get_shots_all_time_df()
-            league_pct = get_shot_pct(shots)
 
 
 with st.container():
@@ -313,6 +355,14 @@ def offensive():
             show_skater_shot_density(shots[shots["type"]=="goal"],"goal")
         else:
             st.error("Il n'y a aucune donnée de buts pour cette joueuse.")
+        
+        if joueuse==None:
+            st.subheader("Taux de buts")
+            st.text(f"Répartition du taux de buts de {equipe}")
+            if teams.loc[id_equipe,"goals_for"]>=30:
+                show_team_gr_density(shots[shots.player_team_id==id_equipe])
+            else:
+                st.error("Il n'y a pas assez de données de buts pour cette équipe.")
 
 with st.container(border=True):
     st.header("Offensive")
