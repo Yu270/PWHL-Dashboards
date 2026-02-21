@@ -243,7 +243,7 @@ def show_team_gr_density(team_df: pd.DataFrame, n_bins: int = 30, sigma: float =
     """
     team_goals = get_shot_distribution(team_df[team_df["type"]=="goal"])
     team_shots = get_shot_distribution(team_df[team_df["type"]=="shot"])
-    team_gr = np.divide(team_goals,team_shots,where=team_shots>0)
+    team_gr = np.divide(team_goals,team_shots,out=np.zeros(team_goals.shape),where=team_shots>0)
     team_gr_smooth = gaussian_filter(team_gr,sigma=sigma)
     img = mpimg.imread("./images/nhl_half_rink.jpeg")
     fig, ax = plt.subplots()
@@ -262,12 +262,12 @@ def show_team_gr_density(team_df: pd.DataFrame, n_bins: int = 30, sigma: float =
         st.selectbox("Équipe 2",options=["(Reste de la ligue)"]+teams[teams.goals_for>=30].sort_values("name").name.to_list(),placeholder="Choisissez une équipe",key="team2_gr")
     league_goals = get_shot_distribution(shots[shots["type"]=="goal"])
     league_shots = get_shot_distribution(shots[shots["type"]=="shot"])
-    league_gr = np.divide(league_goals,league_shots,where=league_shots>0)
+    league_gr = np.divide(league_goals,league_shots,out=np.zeros(league_goals.shape),where=league_shots>0)
     if st.session_state.get("team2_gr","(Reste de la ligue)")!="(Reste de la ligue)":
         team_id = teams[teams.name==st.session_state.get("team2_gr")].index.to_list()[0]
         team_goals2 = get_shot_distribution(shots[(shots["type"]=="goal")*(shots.player_team_id==team_id)])
         team_shots2 = get_shot_distribution(shots[(shots["type"]=="shot")*(shots.player_team_id==team_id)])
-        team_gr2 = np.divide(team_goals2,team_shots2,where=team_shots2>0)
+        team_gr2 = np.divide(team_goals2,team_shots2,out=np.zeros(team_goals2.shape),where=team_shots2>0)
         show_shot_comparison(team_gr,league_gr,sigma,raw_data2=team_gr2)
     else:
         show_shot_comparison(team_gr,league_gr,sigma)
