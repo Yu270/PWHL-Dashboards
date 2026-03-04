@@ -75,6 +75,15 @@ def process_games(id_saison: int, nom_saison: str) -> pd.DataFrame:
                 df.loc[i,"venue"] = df.loc[i,"venue_name"][:ind-1]+", "+df.loc[i,"venue_location"]
             else:
                 df.loc[i,"venue"] = df.loc[i,"venue_name"]+", "+df.loc[i,"venue_location"]
+    df["venue_cntry"] = np.where(
+        df.venue.notna(),
+        np.where(
+            df.venue.str[-2:].isin(["ON","QC","NS","NB","PE","NL","MB","SK","AB","BC","YT","NT","NU"]),
+            "CAN",
+            "USA",
+        ),
+        None,
+    )
     df.drop(columns=["venue_name","venue_location"],inplace=True)
     if "Regular" in nom_saison:
         winning_team = []
@@ -609,7 +618,7 @@ def process_games_all_time() -> pd.DataFrame:
         games = pd.concat((games,temp))
     games["id"] = games["game_id"].astype(str)+"-"+games["season_id"].astype(str)
 
-    columns = ["id","season_id","date","datetime","home_team_id","visiting_team_id","home_goals","visiting_goals","last_period","overtime","game_number","shootout","attendance","final","venue","winning_team","losing_team","home_points","visiting_points"]
+    columns = ["id","season_id","date","datetime","home_team_id","visiting_team_id","home_goals","visiting_goals","last_period","overtime","game_number","shootout","attendance","final","venue","venue_cntry","winning_team","losing_team","home_points","visiting_points"]
     games2 = games[columns].copy()
     games2.rename(columns={"id": "game_id"},inplace=True)
     games2.to_csv("./cache/traitees/games_df.csv",index=False)
