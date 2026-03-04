@@ -10,6 +10,7 @@ from .processing import (
     process_skaters_all_time,
     process_goalies_all_time,
     process_penalties_all_time,
+    process_games_all_time,
     process_shots,
     process_shots_all_time,
 )
