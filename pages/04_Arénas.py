@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from streamlit_product_card import product_card
-from data import get_seasons, get_teams, get_games_df
+from data import get_seasons, get_teams, get_games_df, get_games_all_time_df
 
 st.set_page_config(page_title="Arénas",page_icon="🏟️")
 
@@ -36,10 +36,11 @@ def show_visuals(base_df: pd.DataFrame, variable: str, name: str, aggregation: s
     cols = st.columns(min(3,new_df.shape[0]))
     for i, col in enumerate(cols):
         with col:
+            value = round(new_df.loc[i,variable],rounding) if rounding>0 else int(new_df.loc[i,variable])
             if percent:
-                product_card(new_df.loc[i,"venue"],price=f"{round(new_df.loc[i,variable],rounding)}%",product_image=flags[new_df.loc[i,"venue_cntry"]],picture_position="left",enable_animation=False,key=f"{i+1}_{variable}_{aggregation}")
+                product_card(new_df.loc[i,"venue"],price=f"{value}%",product_image=flags[new_df.loc[i,"venue_cntry"]],picture_position="left",enable_animation=False,key=f"{i+1}_{variable}_{aggregation}")
             else:
-                product_card(new_df.loc[i,"venue"],price=round(new_df.loc[i,variable],rounding),product_image=flags[new_df.loc[i,"venue_cntry"]],picture_position="left",enable_animation=False,key=f"{i+1}_{variable}_{aggregation}")
+                product_card(new_df.loc[i,"venue"],price=value,product_image=flags[new_df.loc[i,"venue_cntry"]],picture_position="left",enable_animation=False,key=f"{i+1}_{variable}_{aggregation}")
     if new_df.shape[0]>3:
         reste = new_df.loc[3:].copy()
         reste["Rang"] = range(4,reste.shape[0]+4)
@@ -63,10 +64,11 @@ def show_visuals2(base_df: pd.DataFrame, variable: str, name: str, rounding: int
     cols = st.columns(min(3,new_df.shape[0]))
     for i, col in enumerate(cols):
         with col:
+            value = round(new_df.loc[i,variable],rounding) if rounding>0 else int(new_df.loc[i,variable])
             if percent:
-                product_card(new_df.loc[i,"name"],price=f"{round(new_df.loc[i,variable],rounding)}%",product_image=new_df.loc[i,"team_logo_url"],picture_position="left",enable_animation=False,key=f"{i+1}_{variable}")
+                product_card(new_df.loc[i,"name"],price=f"{value}%",product_image=new_df.loc[i,"team_logo_url"],picture_position="left",enable_animation=False,key=f"{i+1}_{variable}")
             else:
-                product_card(new_df.loc[i,"name"],price=round(new_df.loc[i,variable],rounding),product_image=new_df.loc[i,"team_logo_url"],picture_position="left",enable_animation=False,key=f"{i+1}_{variable}")
+                product_card(new_df.loc[i,"name"],price=value,product_image=new_df.loc[i,"team_logo_url"],picture_position="left",enable_animation=False,key=f"{i+1}_{variable}")
     if new_df.shape[0]>3:
         reste = new_df.loc[3:].copy()
         reste["Rang"] = range(4,reste.shape[0]+4)
@@ -159,14 +161,21 @@ seasons = get_seasons()
 with st.sidebar:
     st.header("Options")
 
-    saison = st.selectbox("Saison",options=seasons[seasons.career==1].season_name.to_list(),placeholder="Choisissez une saison")
-    id_saison = seasons[seasons.season_name==saison].index.to_list()[0]
+    saison = st.selectbox("Saison",options=seasons[seasons.career==1].season_name.to_list()+["(Toutes)"],placeholder="Choisissez une saison")
+    if saison!="(Toutes)":
+        id_saison = seasons[seasons.season_name==saison].index.to_list()[0]
 
     go = st.button("Récupérer les données")
     if go:
         with st.spinner("Récupération en cours..."):
-            teams = get_teams(id_saison,saison)
-            games = get_games_df(id_saison,saison)
+            if saison=="(Toutes)":
+                last_id = max(seasons[seasons.career==1].index)
+                last_name = seasons.loc[last_id,"season_name"]
+                teams = get_teams(last_id,last_name)
+                games = get_games_all_time_df()
+            else:
+                teams = get_teams(id_saison,saison)
+                games = get_games_df(id_saison,saison)
             games["Count"] = 1
             flags = {
                 "CAN": "https://cdn.quanthockey.com/img/country-flags/Canada-Flag-48.png",
@@ -224,7 +233,7 @@ def par_equipe():
         show_arenas(games)
 
 with st.container(border=True):
-    st.header("Par aréna")
+    st.header("Par équipe")
     if go:
         par_equipe()
     else:
