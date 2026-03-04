@@ -13,6 +13,7 @@ from .util import (
     process_skaters_all_time,
     process_goalies_all_time,
     process_penalties_all_time,
+    process_games_all_time,
     process_shots,
     process_shots_all_time,
 )
@@ -176,6 +177,18 @@ def get_penalties_all_time_df() -> pd.DataFrame:
     if os.path.exists("./cache/traitees/penalties_df.csv"):
         return pd.read_csv("./cache/traitees/penalties_df.csv").sort_values(["season_id","game_id","event_id"]).reset_index(drop=True)
     return process_penalties_all_time().sort_values(["season_id","game_id","event_id"]).reset_index(drop=True)
+
+
+def get_games_all_time_df() -> pd.DataFrame:
+    """
+    Fonction qui retourne les données des parties (toutes les saisons). 
+    
+    Sortie
+        données des parties (toutes les saisons)
+    """
+    if os.path.exists("./cache/traitees/games_df.csv"):
+        return pd.read_csv("./cache/traitees/games_df.csv",index_col=0).sort_values(["season_id","game_id"])
+    return process_games_all_time().sort_values(["season_id","game_id"])
 
 
 def get_shots_df(id_saison: int, nom_saison: str) -> pd.DataFrame:

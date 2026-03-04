@@ -139,13 +139,13 @@ def can_vs_usa():
             data["freq_oth"] = 100*data["count_oth"]/n if n>0 else 0.0
             all_teams.append(data)
         df = pd.DataFrame(all_teams)
-        st.subheader("Canada")
+        st.subheader("Canada 🇨🇦")
         show_visuals(df,"can")
 
-        st.subheader("États-Unis")
+        st.subheader("États-Unis 🇺🇸")
         show_visuals(df,"usa")
 
-        st.subheader("Autres")
+        st.subheader("Autres 🏳️")
         show_visuals(df,"oth")
 
 with st.container(border=True):
