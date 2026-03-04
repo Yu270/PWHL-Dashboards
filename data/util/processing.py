@@ -67,7 +67,7 @@ def process_games(id_saison: int, nom_saison: str) -> pd.DataFrame:
         "visiting_goal_count": "visiting_goals",
         "period": "last_period",
     },inplace=True)
-    df["venue"] = None
+    df["venue"] = "(unknown)"
     for i in df.index:
         if df.loc[i,"venue_name"]==df.loc[i,"venue_name"]:
             ind = df.loc[i,"venue_name"].find("|")
@@ -76,13 +76,13 @@ def process_games(id_saison: int, nom_saison: str) -> pd.DataFrame:
             else:
                 df.loc[i,"venue"] = df.loc[i,"venue_name"]+", "+df.loc[i,"venue_location"]
     df["venue_cntry"] = np.where(
-        df.venue.notna(),
+        df.venue!="(unknown)",
         np.where(
             df.venue.str[-2:].isin(["ON","QC","NS","NB","PE","NL","MB","SK","AB","BC","YT","NT","NU"]),
             "CAN",
             "USA",
         ),
-        None,
+        "(unknown)",
     )
     df.drop(columns=["venue_name","venue_location"],inplace=True)
     if "Regular" in nom_saison:
