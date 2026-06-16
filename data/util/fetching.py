@@ -1,5 +1,6 @@
 import os
 import json
+import datetime
 import requests
 import pandas as pd
 
@@ -27,7 +28,8 @@ def fetch_seasons():
         df = pd.DataFrame(seasons[deb:fin])
         if df.shape[0]>0:
             df.set_index("season_id",inplace=True)
-        df.to_csv("./cache/references/all_seasons.csv")
+        df["started"] = df["start_date"]<datetime.datetime.now().strftime("%Y-%m-%d")
+        df[df.started].drop(columns="started").to_csv("./cache/references/all_seasons.csv")
     else:
         raise Exception(f"{response.status_code}, {response.reason}")
 
@@ -91,7 +93,7 @@ def fetch_teams(id_saison: int, nom_saison: str):
         df = pd.DataFrame(teams[deb:fin])
         if df.shape[0]>0:
             df.set_index("id",inplace=True)
-        df.to_csv(f"./cache/references/{nom_saison}/all_teams.csv")
+        df[df.name.str.lower()!="tbd"].to_csv(f"./cache/references/{nom_saison}/all_teams.csv")
     else:
         raise Exception(f"{response.status_code}, {response.reason}")
 
